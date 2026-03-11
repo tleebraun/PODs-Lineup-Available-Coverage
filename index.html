@@ -10,6 +10,57 @@
 body { background-color: #f9f6f1; color: #1a1a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
 .app { max-width: 700px; margin: 0 auto; padding: 24px 16px 60px; }
 
+/* Sync status bar */
+.sync-bar { display: flex; align-items: center; gap: 8px; background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 10px; padding: 8px 14px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.sync-dot { width: 8px; height: 8px; border-radius: 50%; background-color: #c4bdb0; flex-shrink: 0; transition: background-color 0.3s; }
+.sync-dot.connected { background-color: #1a7a6e; }
+.sync-dot.connecting { background-color: #b87d1a; animation: pulse 1s infinite; }
+.sync-dot.error { background-color: #c0392b; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.sync-label { font-size: 11px; color: #8a8070; font-weight: 600; flex: 1; }
+.sync-label.connected { color: #1a7a6e; }
+.sync-label.connecting { color: #b87d1a; }
+.sync-label.error { color: #c0392b; }
+.sync-users { font-size: 10px; color: #8a8070; background-color: #f3ede4; border-radius: 10px; padding: 2px 8px; font-weight: 700; }
+.sync-room { font-size: 10px; color: #8a8070; font-weight: 600; font-family: monospace; letter-spacing: 0.05em; }
+
+/* Setup overlay */
+.setup-overlay { position: fixed; inset: 0; background-color: #f9f6f1; z-index: 500; display: flex; align-items: flex-start; justify-content: center; padding: 24px 16px 40px; overflow-y: auto; }
+.setup-overlay.hidden { display: none; }
+.setup-card { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 20px; padding: 32px 28px; max-width: 480px; width: 100%; box-shadow: 0 8px 40px rgba(0,0,0,0.10); margin: auto; }
+.setup-logo { font-size: 22px; font-weight: 900; color: #1a1a1a; letter-spacing: -0.03em; margin-bottom: 4px; }
+.setup-logo span { color: #1a7a6e; }
+.setup-sub { font-size: 13px; color: #8a8070; margin-bottom: 28px; line-height: 1.5; }
+.setup-section { margin-bottom: 24px; }
+.setup-section-title { font-size: 12px; font-weight: 800; color: #1a1a1a; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.setup-section-num { width: 20px; height: 20px; border-radius: 50%; background-color: #1a7a6e; color: #fff; font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.setup-instructions { font-size: 12px; color: #4a4a4a; line-height: 1.7; margin-bottom: 12px; background-color: #f9f6f1; border-radius: 10px; padding: 12px 14px; border: 1px solid #e0d8cc; }
+.setup-instructions code { background-color: #e8e0d8; padding: 1px 5px; border-radius: 4px; font-size: 11px; color: #1a1a1a; font-family: monospace; }
+.setup-instructions a { color: #1a7a6e; font-weight: 700; }
+.setup-instructions ol { padding-left: 16px; }
+.setup-instructions li { margin-bottom: 4px; }
+.setup-field { margin-bottom: 10px; }
+.setup-field label { font-size: 11px; font-weight: 700; color: #4a4a4a; display: block; margin-bottom: 5px; letter-spacing: 0.05em; text-transform: uppercase; }
+.setup-input { width: 100%; background-color: #f9f6f1; border: 1px solid #e0d8cc; border-radius: 8px; padding: 10px 12px; color: #1a1a1a; font-size: 13px; outline: none; font-weight: 600; font-family: monospace; }
+.setup-input:focus { border-color: #1a7a6e; background-color: #fff; }
+.setup-input::placeholder { color: #c4bdb0; font-family: monospace; }
+.setup-room-row { display: flex; gap: 8px; }
+.setup-room-input { flex: 1; background-color: #f9f6f1; border: 1px solid #e0d8cc; border-radius: 8px; padding: 10px 12px; color: #1a1a1a; font-size: 13px; outline: none; font-weight: 700; font-family: monospace; letter-spacing: 0.1em; text-transform: uppercase; }
+.setup-room-input:focus { border-color: #1a7a6e; }
+.setup-room-input::placeholder { color: #c4bdb0; font-family: monospace; text-transform: none; }
+.gen-room-btn { background-color: #f3ede4; border: 1px solid #e0d8cc; color: #4a4a4a; font-size: 11px; font-weight: 700; padding: 10px 14px; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+.gen-room-btn:hover { border-color: #8a8070; color: #1a1a1a; }
+.setup-connect-btn { width: 100%; padding: 15px; background-color: #1a7a6e; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; color: #fff; cursor: pointer; margin-top: 8px; }
+.setup-connect-btn:hover { background-color: #15695e; }
+.setup-connect-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.setup-error { background-color: rgba(192,57,43,0.08); border: 1px solid rgba(192,57,43,0.3); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #c0392b; margin-top: 10px; display: none; }
+.setup-error.visible { display: block; }
+.setup-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+.setup-divider-line { flex: 1; height: 1px; background-color: #e0d8cc; }
+.setup-divider-text { font-size: 11px; color: #8a8070; font-weight: 600; }
+.setup-offline-btn { width: 100%; padding: 12px; background-color: #f3ede4; border: 1px solid #e0d8cc; border-radius: 10px; font-size: 13px; font-weight: 700; color: #8a8070; cursor: pointer; }
+.setup-offline-btn:hover { border-color: #8a8070; color: #1a1a1a; }
+
 header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; gap: 16px; }
 .brand-label { font-size: 10px; letter-spacing: 0.2em; color: #8a8070; text-transform: uppercase; font-weight: 600; margin-bottom: 2px; }
 .brand-title { font-size: 24px; font-weight: 800; color: #1a1a1a; letter-spacing: -0.02em; line-height: 1.1; }
@@ -41,7 +92,6 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 .coverage-warn { background-color: rgba(192,57,43,0.07); border: 1px solid rgba(192,57,43,0.3); border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; font-size: 13px; color: #c0392b; display: none; align-items: center; gap: 8px; }
 .coverage-warn.visible { display: flex; }
 
-/* Timer */
 .timer-section { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
 .timer-label { font-size: 10px; letter-spacing: 0.15em; color: #8a8070; text-transform: uppercase; white-space: nowrap; font-weight: 600; }
 .timer-track { flex: 1; height: 6px; background-color: #e0d8cc; border-radius: 3px; overflow: hidden; }
@@ -54,7 +104,6 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 .timer-btn { background-color: #f3ede4; border: 1px solid #e0d8cc; color: #8a8070; font-size: 11px; padding: 6px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap; font-weight: 600; }
 .timer-btn:hover { border-color: #1a7a6e; color: #1a7a6e; }
 
-/* Lunch plan */
 .lunch-slots { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
 .lunch-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; }
 .lunch-slot-col { background-color: #f9f6f1; border: 1px solid #e0d8cc; border-radius: 8px; padding: 8px 5px; text-align: center; }
@@ -66,7 +115,6 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 .lunch-name-row { display: flex; align-items: center; justify-content: center; gap: 3px; }
 .lunch-actual-dot { width: 6px; height: 6px; border-radius: 50%; background-color: #7a3fa0; display: inline-block; }
 
-/* Absent */
 .absent-section { margin-bottom: 14px; }
 .absent-toggle { font-size: 10px; letter-spacing: 0.15em; color: #8a8070; text-transform: uppercase; background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 600; }
 .absent-toggle:hover { color: #1a1a1a; }
@@ -83,7 +131,6 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 .empty-state-title { font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
 .empty-state-sub { font-size: 12px; color: #8a8070; line-height: 1.5; }
 
-/* RN Cards */
 .rn-card { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 10px; padding: 11px 13px; display: flex; align-items: center; gap: 9px; position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
 .rn-card::before { content:’’; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; }
 .rn-card.front { border-color: #1a7a6e; box-shadow: 0 2px 8px rgba(26,122,110,0.12); background-color: #f0faf8; }
@@ -138,7 +185,6 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 .drag-handle { color:#c4bdb0; font-size:12px; cursor:grab; padding:2px 3px; border-radius:4px; user-select:none; flex-shrink:0; }
 .drag-handle:hover { color:#8a8070; }
 
-/* Lineup snapshot */
 .lineup-snapshot { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:10px; padding:11px 14px; margin-bottom:10px; display:flex; align-items:center; gap:10px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
 .snapshot-text { flex:1; font-size:13px; color:#4a4a4a; line-height:1.5; font-weight:500; min-width:0; }
 .snapshot-text .snap-front { font-weight:800; color:#1a7a6e; }
@@ -164,7 +210,6 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 .add-btn { background-color:rgba(26,122,110,0.1); border:1px solid rgba(26,122,110,0.3); color:#1a7a6e; font-size:14px; font-weight:800; padding:10px 18px; border-radius:8px; cursor:pointer; white-space:nowrap; }
 .add-btn:hover { background-color:#1a7a6e; color:#ffffff; }
 
-/* Available Coverage */
 .avail-header-bar { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:12px; padding:14px 16px; margin-bottom:14px; display:flex; align-items:center; gap:12px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
 .avail-current-label { font-size:10px; letter-spacing:0.15em; color:#8a8070; text-transform:uppercase; font-weight:600; white-space:nowrap; }
 .avail-current-name { font-size:18px; font-weight:800; color:#1a5f8a; flex:1; }
@@ -238,6 +283,9 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 .copy-handoff-btn { margin-top:10px; background-color:rgba(26,95,138,0.1); border:1px solid rgba(26,95,138,0.3); color:#1a5f8a; font-size:11px; font-weight:700; padding:7px 14px; border-radius:8px; cursor:pointer; }
 .copy-handoff-btn:hover { background-color:#1a5f8a; color:#ffffff; }
 
+.share-lineup-section { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:12px; overflow:hidden; margin-bottom:14px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
+.share-lineup-header { padding:12px 16px; border-bottom:1px solid #e0d8cc; display:flex; align-items:center; justify-content:space-between; }
+.share-lineup-preview { padding:12px 16px; font-size:13px; color:#4a4a4a; line-height:1.6; font-weight:500; }
 .log-section { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:12px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
 .log-header { padding:12px 16px; border-bottom:1px solid #e0d8cc; display:flex; align-items:center; justify-content:space-between; }
 .copy-log-btn { font-size:10px; color:#8a8070; background:none; border:1px solid #e0d8cc; padding:4px 10px; border-radius:6px; cursor:pointer; font-weight:600; }
@@ -270,13 +318,96 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 .dialog-confirm { padding:11px; background-color:#1a7a6e; border:none; border-radius:8px; color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; }
 .dialog-confirm:hover { background-color:#15695e; }
 
-.toast { position:fixed; bottom:24px; right:24px; background-color:#1a1a1a; border-radius:10px; padding:11px 16px; font-size:12px; color:#ffffff; font-weight:700; z-index:200; transform:translateY(20px); opacity:0; transition:all 0.25s; pointer-events:none; }
+.toast { position:fixed; bottom:24px; right:24px; background-color:#1a1a1a; border-radius:10px; padding:11px 16px; font-size:12px; color:#ffffff; font-weight:700; z-index:200; transform:translateY(20px); opacity:0; transition:all 0.25s; pointer-events:none; max-width:280px; }
 .toast.show { transform:translateY(0); opacity:1; }
 </style>
 
 </head>
 <body>
+
+<!-- ═══════════════════════════════════════════
+     FIREBASE SETUP OVERLAY
+     Users see this once. Config is saved to localStorage.
+════════════════════════════════════════════ -->
+
+<div class="setup-overlay" id="setupOverlay">
+  <div class="setup-card">
+    <div class="setup-logo">PODs/<span>Lineup</span></div>
+    <div class="setup-sub">One-time Firebase setup. Takes about 5 minutes. Only the person who sets this up needs an account — everyone else just opens the file.</div>
+
+```
+<div class="setup-section">
+  <div class="setup-section-title"><span class="setup-section-num">1</span> Create a free Firebase project</div>
+  <div class="setup-instructions">
+    <ol>
+      <li>Go to <a href="https://urldefense.com/v3/__https://console.firebase.google.com__;!!IZ3lH8c!wUYxvpUt1RDaTPOANDNYidVAl8oC43hw7LnSw6e6T9rEwkZksnkSSTZiBKFu9cnv8_swCH21RckvIUE$" target="_blank">console.firebase.google.com</a></li>
+      <li>Click <code>Add project</code> → name it (e.g. <code>ccmu1-lineup</code>) → continue through defaults</li>
+      <li>In the left sidebar: <code>Build → Realtime Database → Create database</code></li>
+      <li>Choose <code>Start in test mode</code> → enable</li>
+      <li>Back in left sidebar: <code>Project Overview ⚙️ → Project settings</code></li>
+      <li>Scroll to <code>Your apps</code> → click the <code>&lt;/&gt;</code> web icon → register app → copy the <code>firebaseConfig</code> object values below</li>
+    </ol>
+  </div>
+</div>
+
+<div class="setup-section">
+  <div class="setup-section-title"><span class="setup-section-num">2</span> Paste your Firebase config</div>
+  <div class="setup-field">
+    <label>API Key</label>
+    <input class="setup-input" id="cfg_apiKey" placeholder="AIzaSy...">
+  </div>
+  <div class="setup-field">
+    <label>Auth Domain</label>
+    <input class="setup-input" id="cfg_authDomain" placeholder="your-project.firebaseapp.com">
+  </div>
+  <div class="setup-field">
+    <label>Database URL</label>
+    <input class="setup-input" id="cfg_databaseURL" placeholder="https://urldefense.com/v3/__https://your-project-default-rtdb.firebaseio.com__;!!IZ3lH8c!wUYxvpUt1RDaTPOANDNYidVAl8oC43hw7LnSw6e6T9rEwkZksnkSSTZiBKFu9cnv8_swCH21capSxJY$">
+  </div>
+  <div class="setup-field">
+    <label>Project ID</label>
+    <input class="setup-input" id="cfg_projectId" placeholder="your-project-id">
+  </div>
+</div>
+
+<div class="setup-section">
+  <div class="setup-section-title"><span class="setup-section-num">3</span> Set a room code for your unit</div>
+  <div class="setup-instructions">
+    This is a short code shared among your team. Anyone who enters the same code sees the same live lineup. Keep it simple — no spaces. Example: <code>CCMU1</code> or <code>SHIFT3</code>
+  </div>
+  <div class="setup-room-row" style="margin-top:10px">
+    <input class="setup-room-input" id="cfg_room" placeholder="Enter room code" maxlength="20">
+    <button class="gen-room-btn" onclick="genRoom()">Generate</button>
+  </div>
+</div>
+
+<div id="setupError" class="setup-error"></div>
+<button class="setup-connect-btn" onclick="connectFirebase()">Connect & Open App</button>
+
+<div class="setup-divider">
+  <div class="setup-divider-line"></div>
+  <div class="setup-divider-text">or</div>
+  <div class="setup-divider-line"></div>
+</div>
+<button class="setup-offline-btn" onclick="useOffline()">Use offline (this device only, no sync)</button>
+```
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MAIN APP
+════════════════════════════════════════════ -->
+
 <div class="app">
+  <div class="sync-bar" id="syncBar">
+    <div class="sync-dot" id="syncDot"></div>
+    <span class="sync-label" id="syncLabel">Not connected</span>
+    <span class="sync-room" id="syncRoom"></span>
+    <span class="sync-users" id="syncUsers" style="display:none"></span>
+    <button style="background:none;border:1px solid #e0d8cc;color:#8a8070;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;cursor:pointer;margin-left:auto" onclick="openSetup()">⚙ Config</button>
+  </div>
+
   <header>
     <div>
       <div class="brand-label">CCMU1 Coverage</div>
@@ -354,6 +485,13 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
       </select>
       <button class="add-btn" onclick="addRN()">Join</button>
     </div>
+    <div class="share-lineup-section" id="shareLineupSection" style="display:none">
+      <div class="share-lineup-header">
+        <span class="section-label" style="margin:0">Share Lineup</span>
+        <button class="copy-log-btn" onclick="copyLineup()">Copy</button>
+      </div>
+      <div class="share-lineup-preview" id="shareLineupPreview"></div>
+    </div>
   </div>
 
   <div id="availScreen" style="display:none">
@@ -416,34 +554,202 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 </div>
 <div class="toast" id="toast"></div>
 
+<!-- Firebase SDK (compat — globally scoped, no module needed) -->
+
+<script src="https://urldefense.com/v3/__https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js__;!!IZ3lH8c!wUYxvpUt1RDaTPOANDNYidVAl8oC43hw7LnSw6e6T9rEwkZksnkSSTZiBKFu9cnv8_swCH21aVdtxQg$"></script>
+
+<script src="https://urldefense.com/v3/__https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js__;!!IZ3lH8c!wUYxvpUt1RDaTPOANDNYidVAl8oC43hw7LnSw6e6T9rEwkZksnkSSTZiBKFu9cnv8_swCH21RXfDCUg$"></script>
+
 <script>
+
+// ─── Constants ────────────────────────────────────────────────────────────────
 const LUNCH_PLAN_SLOTS=['~12:00','~12:15','~12:30','~12:45','~3:30'];
 const LUNCH_SLOT_TIMES=['12:00','12:15','12:30','12:45','3:30'];
 const LUNCH_DURATION=30*60,ROTATION_DURATION=30*60,CREDIT_MINIMUM=5*60;
-const STORAGE_KEY='pods_avail_v2';
+const CFG_KEY='pods_firebase_cfg';
 
+// ─── State ────────────────────────────────────────────────────────────────────
 let mode=null,roster=[],absentRoster=[],timerSeconds=ROTATION_DURATION,timerRunning=true;
 let timerInterval=null,lunchInterval=null,dragSrc=null,absentOpen=false;
 let availBlocks=[],cmRNs=[],availLunchRoster=[],log=[];
 let availCountdownInterval=null,clockInterval=null;
 
-function init(){
-  const saved=sessionStorage.getItem(STORAGE_KEY);
-  if(saved){try{const s=JSON.parse(saved);mode=s.mode||null;roster=s.roster||[];absentRoster=s.absentRoster||[];timerSeconds=s.timerSeconds||ROTATION_DURATION;availBlocks=s.availBlocks||[];cmRNs=s.cmRNs||[];availLunchRoster=s.availLunchRoster||[];log=s.log||[];}catch{fullReset();}}
-  updateDate();renderMode();
+// Firebase state
+let firebaseApp=null,db=null,dbRef=null,syncEnabled=false,roomCode=null;
+let remotePushPending=false,ignoreNextRemote=false,presenceRef=null;
+let connectedUsers=1;
+
+// ─── Setup / Config ──────────────────────────────────────────────────────────
+function loadConfig(){
+  try { return JSON.parse(localStorage.getItem(CFG_KEY)||'null'); }
+  catch { return null; }
+}
+function saveConfig(cfg){ localStorage.setItem(CFG_KEY,JSON.stringify(cfg)); }
+
+window.genRoom=function(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code='';for(let i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];
+  document.getElementById('cfg_room').value=code;
+};
+
+window.openSetup=function(){
+  const cfg=loadConfig();
+  if(cfg){
+    document.getElementById('cfg_apiKey').value=cfg.apiKey||'';
+    document.getElementById('cfg_authDomain').value=cfg.authDomain||'';
+    document.getElementById('cfg_databaseURL').value=cfg.databaseURL||'';
+    document.getElementById('cfg_projectId').value=cfg.projectId||'';
+    document.getElementById('cfg_room').value=cfg.room||'';
+  }
+  document.getElementById('setupOverlay').classList.remove('hidden');
+};
+
+window.connectFirebase=async function(){
+  const apiKey=document.getElementById('cfg_apiKey').value.trim();
+  const authDomain=document.getElementById('cfg_authDomain').value.trim();
+  const databaseURL=document.getElementById('cfg_databaseURL').value.trim();
+  const projectId=document.getElementById('cfg_projectId').value.trim();
+  const room=document.getElementById('cfg_room').value.trim().toUpperCase().replace(/\s+/g,'');
+  const errEl=document.getElementById('setupError');
+  errEl.classList.remove('visible');
+
+  if(!apiKey||!databaseURL||!projectId||!room){
+    errEl.textContent='Please fill in API Key, Database URL, Project ID, and a room code.';
+    errEl.classList.add('visible');return;
+  }
+  if(!databaseURL.includes('firebaseio.com')){
+    errEl.textContent='Database URL should end in .firebaseio.com';
+    errEl.classList.add('visible');return;
+  }
+
+  const btn=document.querySelector('.setup-connect-btn');
+  btn.disabled=true;btn.textContent='Connecting…';
+
+  try {
+    const cfg={apiKey,authDomain,databaseURL,projectId,room};
+    await initFirebase(cfg);
+    saveConfig(cfg);
+    document.getElementById('setupOverlay').classList.add('hidden');
+    showToast('Connected to room '+room);
+    btn.disabled=false;btn.textContent='Connect & Open App';
+  } catch(e) {
+    errEl.textContent='Connection failed: '+e.message+'. Check your config and make sure the Realtime Database is enabled.';
+    errEl.classList.add('visible');
+    btn.disabled=false;btn.textContent='Connect & Open App';
+  }
+};
+
+window.useOffline=function(){
+  syncEnabled=false;
+  document.getElementById('setupOverlay').classList.add('hidden');
+  setSyncUI('offline','Offline mode','');
+  init();
+};
+
+async function initFirebase(cfg){
+  roomCode=cfg.room;
+  if(firebaseApp){try{await firebaseApp.delete();}catch{}}
+  firebaseApp=firebase.initializeApp({apiKey:cfg.apiKey,authDomain:cfg.authDomain,databaseURL:cfg.databaseURL,projectId:cfg.projectId},cfg.projectId+'-'+Date.now());
+  db=firebaseApp.database();
+  dbRef=db.ref('rooms/'+roomCode+'/state');
+  setSyncUI('connecting','Connecting…',roomCode);
+  await db.ref('rooms/'+roomCode+'/_ping').set(Date.now());
+  syncEnabled=true;
+  setSyncUI('connected','Live · '+roomCode,roomCode);
+  dbRef.on('value',(snapshot)=>{
+    if(ignoreNextRemote){ignoreNextRemote=false;return;}
+    const data=snapshot.val();
+    if(!data)return;
+    applyRemoteState(data);
+  });
+  db.ref('rooms/'+roomCode+'/presence/'+Math.random().toString(36).slice(2)).set({online:true,ts:Date.now()});
+  db.ref('rooms/'+roomCode+'/presence').on('value',(snap)=>{
+    const n=snap.exists()?Object.keys(snap.val()).length:1;
+    connectedUsers=n;
+    const el=document.getElementById('syncUsers');
+    if(n>1){el.style.display='block';el.textContent=n+' online';}
+    else el.style.display='none';
+  });
+}
+
+function applyRemoteState(data){
+  mode=data.mode||null;
+  roster=data.roster||[];
+  absentRoster=data.absentRoster||[];
+  timerSeconds=data.timerSeconds||ROTATION_DURATION;
+  timerRunning=data.timerRunning!==undefined?data.timerRunning:true;
+  availBlocks=data.availBlocks||[];
+  cmRNs=data.cmRNs||[];
+  availLunchRoster=data.availLunchRoster||[];
+  log=data.log||[];
+  renderMode();
+  document.getElementById('timerToggle').textContent=timerRunning?'Pause':'Resume';
+}
+
+// ─── Persistence ─────────────────────────────────────────────────────────────
+function saveState(){
+  const state={mode,roster,absentRoster,timerSeconds,timerRunning,availBlocks,cmRNs,availLunchRoster,log,_ts:Date.now()};
+  // Always save locally as fallback
+  try { sessionStorage.setItem('pods_local',JSON.stringify(state)); } catch{}
+  if(syncEnabled&&db&&dbRef){
+    ignoreNextRemote=true;
+    dbRef.set(state).catch(e=>{
+      console.warn('Firebase write failed:',e);
+      setSyncUI('error','Sync error',roomCode);
+    });
+  }
+}
+
+function setSyncUI(status,label,room){
+  const dot=document.getElementById('syncDot'),lbl=document.getElementById('syncLabel'),rmEl=document.getElementById('syncRoom');
+  dot.className='sync-dot '+(status==='connected'?'connected':status==='connecting'?'connecting':status==='error'?'error':'');
+  lbl.className='sync-label '+(status==='connected'?'connected':status==='connecting'?'connecting':status==='error'?'error':'');
+  lbl.textContent=label;
+  rmEl.textContent=room?'Room: '+room:'';
+}
+
+// ─── Hard-coded config — no setup screen needed ──────────────────────────────
+const FIREBASE_CFG={
+  apiKey:"AIzaSyC-H6-1UExZRl92N37zcZDHRMQr8zeZDVI",
+  authDomain:"ccmu1-lineup.firebaseapp.com",
+  databaseURL:"https://ccmu1-lineup-default-rtdb.firebaseio.com",
+  projectId:"ccmu1-lineup",
+  room:"CCMU1"
+};
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+async function init(){
+  document.getElementById('setupOverlay').classList.add('hidden');
+  try {
+    await initFirebase(FIREBASE_CFG);
+  } catch(e) {
+    console.warn('Firebase init failed, falling back to local:',e);
+    setSyncUI('error','Sync unavailable','');
+    loadLocal();
+  }
+  updateDate();
   if(mode==='pods'){startPodsTimer();startLunchWatcher();}
   if(mode==='avail'){startAvailCountdown();startLunchWatcher();}
   clockInterval=setInterval(updateDate,30000);
+  renderMode();
+}
+
+function loadLocal(){
+  try{
+    const saved=sessionStorage.getItem('pods_local');
+    if(saved){const s=JSON.parse(saved);mode=s.mode||null;roster=s.roster||[];absentRoster=s.absentRoster||[];timerSeconds=s.timerSeconds||ROTATION_DURATION;timerRunning=s.timerRunning!==undefined?s.timerRunning:true;availBlocks=s.availBlocks||[];cmRNs=s.cmRNs||[];availLunchRoster=s.availLunchRoster||[];log=s.log||[];}
+  } catch{}
 }
 
 function fullReset(){mode=null;roster=[];absentRoster=[];timerSeconds=ROTATION_DURATION;availBlocks=[];cmRNs=[];availLunchRoster=[];log=[];}
 
-function setMode(m){
+// ─── Mode ─────────────────────────────────────────────────────────────────────
+window.setMode=function(m){
   mode=m;
   if(m==='pods'){addLog('PODs Day started','system');startPodsTimer();startLunchWatcher();}
   else{if(!availBlocks.find(b=>b.start==='8:00a'))availBlocks.unshift({start:'8:00a',end:'9:00a',name:'All Watch',callCount:0,unavailable:false});addLog('Available Coverage Day started','system');startAvailCountdown();startLunchWatcher();}
   saveState();renderMode();
-}
+};
 
 function renderMode(){
   document.getElementById('modeSelectorScreen').style.display=mode?'none':'block';
@@ -452,25 +758,33 @@ function renderMode(){
   document.getElementById('logSection').style.display=mode?'block':'none';
   document.getElementById('switchBtn').style.display=mode?'block':'none';
   const badge=document.getElementById('modeBadge');
-  if(mode==='pods') badge.innerHTML='<span class="mode-badge pods">PODs Day</span>';
-  else if(mode==='avail') badge.innerHTML='<span class="mode-badge avail">Available Coverage</span>';
+  if(mode==='pods')badge.innerHTML='<span class="mode-badge pods">PODs Day</span>';
+  else if(mode==='avail')badge.innerHTML='<span class="mode-badge avail">Available Coverage</span>';
   else badge.innerHTML='';
-  if(mode==='pods') renderPods();
-  if(mode==='avail') renderAvail();
+  if(mode==='pods')renderPods();
+  if(mode==='avail')renderAvail();
   renderLog();
 }
 
-function confirmSwitchMode(){showDialog('Switch Coverage Mode','This will clear the current lineup and log. Are you sure?',()=>{fullReset();saveState();clearInterval(timerInterval);clearInterval(availCountdownInterval);renderMode();showToast('Mode cleared');});}
+window.confirmSwitchMode=function(){showDialog('Switch Coverage Mode','This will clear the current lineup and log. Are you sure?',()=>{fullReset();saveState();clearInterval(timerInterval);clearInterval(availCountdownInterval);renderMode();showToast('Mode cleared');});};
 
 function updateDate(){
   const now=new Date();
   document.getElementById('dateBlock').innerHTML=now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+'<br>'+now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-  if(mode==='avail') renderAvailHeader();
+  if(mode==='avail')renderAvailHeader();
 }
 
+// ─── Timer ────────────────────────────────────────────────────────────────────
 function startPodsTimer(){
   clearInterval(timerInterval);
-  timerInterval=setInterval(()=>{if(!timerRunning)return;timerSeconds--;if(timerSeconds<=0){autoRotate();timerSeconds=ROTATION_DURATION;}renderTimer();if(mode==='pods')renderLineupSnapshot();saveState();},1000);
+  timerInterval=setInterval(()=>{
+    if(!timerRunning)return;
+    timerSeconds--;
+    if(timerSeconds<=0){autoRotate();timerSeconds=ROTATION_DURATION;}
+    renderTimer();
+    if(mode==='pods')renderLineupSnapshot();
+    saveState();
+  },1000);
   renderTimer();
 }
 
@@ -483,14 +797,18 @@ function renderTimer(){
   fill.className='timer-fill'+(cls?' '+cls:'');disp.className='timer-display'+(cls?' '+cls:'');
 }
 
-document.getElementById('timerToggle').onclick=()=>{timerRunning=!timerRunning;document.getElementById('timerToggle').textContent=timerRunning?'Pause':'Resume';};
-document.getElementById('timerReset').onclick=()=>{timerSeconds=ROTATION_DURATION;renderTimer();showToast('Timer reset');};
+document.getElementById('timerToggle').onclick=()=>{timerRunning=!timerRunning;document.getElementById('timerToggle').textContent=timerRunning?'Pause':'Resume';saveState();};
+document.getElementById('timerReset').onclick=()=>{timerSeconds=ROTATION_DURATION;renderTimer();saveState();showToast('Timer reset');};
 
+// ─── Lunch watcher ────────────────────────────────────────────────────────────
 function getLunchRoster(){return mode==='pods'?roster:availLunchRoster;}
-
 function startLunchWatcher(){
   clearInterval(lunchInterval);
-  lunchInterval=setInterval(()=>{let changed=false;getLunchRoster().forEach(rn=>{if(rn.atLunch&&rn.lunchSecondsLeft>0){rn.lunchSecondsLeft--;if(rn.lunchSecondsLeft<=0){returnFromLunch(rn,true);changed=true;}else changed=true;}});if(changed){if(mode==='pods')renderPods();else renderAvail();saveState();}},1000);
+  lunchInterval=setInterval(()=>{
+    let changed=false;
+    getLunchRoster().forEach(rn=>{if(rn.atLunch&&rn.lunchSecondsLeft>0){rn.lunchSecondsLeft--;if(rn.lunchSecondsLeft<=0){returnFromLunch(rn,true);changed=true;}else changed=true;}});
+    if(changed){if(mode==='pods')renderPods();else renderAvail();saveState();}
+  },1000);
 }
 
 function goToLunch(rn){
@@ -523,7 +841,8 @@ function applyCreditIfNeeded(){
   if(front&&front.frontCredit>0){timerSeconds=front.frontCredit;front.frontCredit=0;renderTimer();addLog('<strong>'+esc(front.name)+'</strong> <span class="ev-credit">front credit applied — '+pad(Math.floor(timerSeconds/60))+':'+pad(timerSeconds%60)+'</span>','credit');saveState();}
 }
 
-function setLunchPlan(roster_ref,idx,slot){roster_ref[idx].lunchSlot=slot||null;renderLunchGrid(roster_ref,'podsLunchGrid');saveState();}
+function setLunchPlan(idx,slot){roster[idx].lunchSlot=slot||null;renderLunchGrid(roster,'podsLunchGrid');saveState();}
+window.setLunchPlan=setLunchPlan;
 
 function renderLunchGrid(roster_ref,gridId){
   const grid=document.getElementById(gridId);if(!grid)return;
@@ -538,10 +857,10 @@ function renderLunchGrid(roster_ref,gridId){
 }
 
 function slotToMins(s){if(s==='3:30')return 15*60+30;const[h,m]=s.split(':').map(Number);return h*60+m;}
-
 function getActive(){return roster.filter(rn=>!rn.atLunch);}
 function getFrontRN(){return getActive()[0]||null;}
 
+// ─── Rotation ─────────────────────────────────────────────────────────────────
 function rotate(reason,specificRN){
   const active=getActive();if(active.length<2){showToast('Need 2+ active RNs to rotate');return;}
   const target=specificRN||active[0];const idx=roster.indexOf(target);roster.splice(idx,1);roster.push(target);
@@ -553,29 +872,30 @@ function rotate(reason,specificRN){
 }
 
 function autoRotate(){rotate('auto');}
-function manualRotate(){rotate('manual');}
+window.manualRotate=function(){rotate('manual');};
+window.handleTookCall=function(){const front=getFrontRN();if(!front)return;showDialog('Confirm Call Rotation','<strong>'+esc(front.name)+'</strong> took a call and moves to the back. Timer resets.',()=>rotate('call-front'));};
+window.handleTookCallBack=function(idx){const rn=roster[idx];showDialog('Took a Call Out of Turn','<strong>'+esc(rn.name)+'</strong> took a call and will move to the back.',()=>rotate('call-back',rn));};
 
-function handleTookCall(){const front=getFrontRN();if(!front)return;showDialog('Confirm Call Rotation','<strong>'+esc(front.name)+'</strong> took a call and moves to the back. Timer resets.',()=>rotate('call-front'));}
-function handleTookCallBack(idx){const rn=roster[idx];showDialog('Took a Call Out of Turn','<strong>'+esc(rn.name)+'</strong> took a call and will move to the back.',()=>rotate('call-back',rn));}
+// ─── Roster management ────────────────────────────────────────────────────────
+window.markAbsent=function(idx){const rn=roster.splice(idx,1)[0];rn.atLunch=false;rn.lunchSecondsLeft=0;rn.lunchSlot=null;rn.frontCredit=0;absentRoster.push(rn);addLog('<strong>'+esc(rn.name)+'</strong> removed','absent');renderPods();saveState();showToast(rn.name+' removed');};
+window.restoreFromAbsent=function(idx){const rn=absentRoster.splice(idx,1)[0];roster.push(rn);addLog('<strong>'+esc(rn.name)+'</strong> restored','manual');renderPods();saveState();showToast(rn.name+' restored');};
+window.toggleAbsentView=function(){absentOpen=!absentOpen;document.getElementById('absentList').style.display=absentOpen?'flex':'none';document.getElementById('absentToggleIcon').textContent=absentOpen?'▾':'▸';};
 
-function markAbsent(idx){const rn=roster.splice(idx,1)[0];rn.atLunch=false;rn.lunchSecondsLeft=0;rn.lunchSlot=null;rn.frontCredit=0;absentRoster.push(rn);addLog('<strong>'+esc(rn.name)+'</strong> removed','absent');renderPods();saveState();showToast(rn.name+' removed');}
-function restoreFromAbsent(idx){const rn=absentRoster.splice(idx,1)[0];roster.push(rn);addLog('<strong>'+esc(rn.name)+'</strong> restored','manual');renderPods();saveState();showToast(rn.name+' restored');}
-function toggleAbsentView(){absentOpen=!absentOpen;document.getElementById('absentList').style.display=absentOpen?'flex':'none';document.getElementById('absentToggleIcon').textContent=absentOpen?'▾':'▸';}
-
-function addRN(){
+window.addRN=function(){
   const input=document.getElementById('addInput'),type=document.getElementById('addType').value,name=input.value.trim();if(!name)return;
   if(roster.find(r=>r.name.toLowerCase()===name.toLowerCase())||absentRoster.find(r=>r.name.toLowerCase()===name.toLowerCase())){showToast('Already in lineup');return;}
   const newRN={name,type,lunchSlot:null,atLunch:false,lunchSecondsLeft:0,lunchActualTime:null,frontCredit:0,originalPosition:roster.length};
   if(type==='evening'){const active=getActive();const fi=active.length>0?roster.indexOf(active[0]):roster.length-1;roster.splice(fi+1,0,newRN);addLog('<strong>'+esc(name)+'</strong> joined as Evening RN','evening');}
   else{roster.push(newRN);addLog('<strong>'+esc(name)+'</strong> joined the lineup','join');}
   input.value='';renderPods();saveState();showToast(name+' joined');
-}
+};
 
-function moveToFront(idx){const rn=roster[idx];roster.splice(idx,1);roster.unshift(rn);timerSeconds=ROTATION_DURATION;renderTimer();applyCreditIfNeeded();addLog('<strong>'+esc(rn.name)+'</strong> moved to front','manual');renderPods();saveState();showToast(rn.name+' moved to front');}
-function openAddEveningHint(){document.getElementById('addType').value='evening';document.getElementById('addInput').focus();showToast('Type evening RN name and tap Join');}
-function openPodsResetDialog(){showDialog('Reset PODs Lineup','Clear lineup and log to start fresh?',()=>{roster=[];absentRoster=[];timerSeconds=ROTATION_DURATION;log=[];addLog('Lineup reset','system');renderTimer();renderPods();renderLog();saveState();showToast('Lineup cleared');});}
+window.moveToFront=function(idx){const rn=roster[idx];roster.splice(idx,1);roster.unshift(rn);timerSeconds=ROTATION_DURATION;renderTimer();applyCreditIfNeeded();addLog('<strong>'+esc(rn.name)+'</strong> moved to front','manual');renderPods();saveState();showToast(rn.name+' moved to front');};
+window.openAddEveningHint=function(){document.getElementById('addType').value='evening';document.getElementById('addInput').focus();showToast('Type evening RN name and tap Join');};
+window.openPodsResetDialog=function(){showDialog('Reset PODs Lineup','Clear lineup and log to start fresh?',()=>{roster=[];absentRoster=[];timerSeconds=ROTATION_DURATION;log=[];addLog('Lineup reset','system');renderTimer();renderPods();renderLog();saveState();showToast('Lineup cleared');});};
 
-function renderPods(){renderLunchGrid(roster,'podsLunchGrid');renderPodsLineup();renderLineupSnapshot();renderPodsCallBtn();renderPodsAbsent();checkPodsCoverage();}
+// ─── Pods render ──────────────────────────────────────────────────────────────
+function renderPods(){renderLunchGrid(roster,'podsLunchGrid');renderPodsLineup();renderPodsCallBtn();renderPodsAbsent();checkPodsCoverage();renderShareLineup();}
 
 function renderPodsLineup(){
   const container=document.getElementById('lineupContainer');
@@ -595,14 +915,14 @@ function renderPodsLineup(){
     if(hasCredit)badges+='<span class="credit-display">+'+Math.ceil(rn.frontCredit/60)+'m</span>';
     if(rn.type==='evening'&&!rn.atLunch&&!hasCredit)badges+='<span class="badge badge-evening">EVE</span>';
     const planOpts=LUNCH_PLAN_SLOTS.map(s=>'<option value="'+s+'"'+(rn.lunchSlot===s?' selected':'')+'>'+s+'</option>').join('');
-    const planSel=!rn.atLunch?'<select class="lunch-plan-select'+(rn.lunchSlot?' set':'')+'" onchange="setLunchPlan(roster,'+i+',this.value)"><option value="">Lunch</option>'+planOpts+'</select>':'';
+    const planSel=!rn.atLunch?'<select class="lunch-plan-select'+(rn.lunchSlot?' set':'')+'" onchange="setLunchPlan('+i+',this.value)"><option value="">Lunch</option>'+planOpts+'</select>':'';
     let metaText='';
     if(rn.atLunch)metaText='Lunch since '+(rn.lunchActualTime||'—')+(rn.lunchSlot?' (plan '+rn.lunchSlot+')':'');
     else if(isFront)metaText='Up front now'+(rn.lunchSlot?' · '+rn.lunchSlot:'');
     else if(hasCredit)metaText=Math.ceil(rn.frontCredit/60)+'m credit when reached';
     else metaText='Position '+dispPos+(rn.lunchSlot?' · '+rn.lunchSlot:'');
     let acts='';
-    if(rn.atLunch){acts='<button class="icon-btn lunch-return" onclick="returnFromLunch(roster['+i+'],false)">↩ Back</button>';}
+    if(rn.atLunch){acts='<button class="icon-btn lunch-return" onclick="rnReturnFromLunch('+i+')">↩ Back</button>';}
     else{acts+='<button class="icon-btn go-lunch" title="Going to lunch" onclick="handleGoLunch_pods('+i+')">🥗</button>';if(!isFront){acts+='<button class="icon-btn to-front" title="Move to front" onclick="moveToFront('+i+')">↑</button>';acts+='<button class="icon-btn to-back" title="Took call out of turn" onclick="handleTookCallBack('+i+')">📞</button>';}acts+='<button class="icon-btn absent" title="Remove" onclick="markAbsent('+i+')">✕</button>';}
     card.innerHTML='<span class="drag-handle">⠿</span><span class="position-num">'+dispPos+'</span><div class="rn-avatar">'+initials(rn.name)+'</div><div class="rn-info"><div class="rn-name">'+esc(rn.name)+'</div><div class="rn-meta">'+metaText+'</div></div><div class="rn-badges">'+badges+'</div>'+planSel+'<div class="rn-actions">'+acts+'</div>';
     card.addEventListener('dragstart',e=>{dragSrc=i;e.dataTransfer.effectAllowed='move';});
@@ -615,42 +935,30 @@ function renderPodsLineup(){
   document.getElementById('rnCount').textContent=active.length+' active / '+roster.length+' total';
 }
 
-function handleGoLunch_pods(idx){const rn=roster[idx];showDialog('Going to Lunch','<strong>'+esc(rn.name)+'</strong> heading to lunch now'+(rn.lunchSlot?' (plan '+rn.lunchSlot+')':'')+'. 30-min countdown starts.',()=>goToLunch(rn));}
+window.rnReturnFromLunch=function(idx){returnFromLunch(roster[idx],false);};
+window.handleGoLunch_pods=function(idx){const rn=roster[idx];showDialog('Going to Lunch','<strong>'+esc(rn.name)+'</strong> heading to lunch now'+(rn.lunchSlot?' (plan '+rn.lunchSlot+')':'')+'. 30-min countdown starts.',()=>goToLunch(rn));};
 function renderPodsCallBtn(){const front=getFrontRN();document.getElementById('callBtnName').textContent=front?'('+front.name+')':'';document.getElementById('callBtn').disabled=!front;}
 
 function renderLineupSnapshot(){
-  const snap=document.getElementById('lineupSnapshot');
-  const txt=document.getElementById('snapshotText');
-  const active=getActive();
-  if(roster.length===0){snap.style.display='none';return;}
+  const snap=document.getElementById('lineupSnapshot'),txt=document.getElementById('snapshotText');
+  const active=getActive();if(roster.length===0){snap.style.display='none';return;}
   snap.style.display='flex';
-  const now=new Date();
-  const minsLeft=Math.ceil(timerSeconds/60);
-  const startMins=timerRunning?(minsLeft<30?30-minsLeft:0):null;
+  const now=new Date(),minsLeft=Math.ceil(timerSeconds/60);
   const startTime=new Date(now.getTime()-((ROTATION_DURATION-timerSeconds)*1000));
   const startStr=startTime.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
   const parts=[];
   roster.forEach((rn,i)=>{
     const isFirst=active[0]===rn&&!rn.atLunch;
-    if(rn.atLunch){parts.push(rn.name+' (lunch)');}
-    else if(isFirst){parts.push(rn.name+' (up front since '+startStr+', '+minsLeft+'m left)');}
-    else{parts.push(rn.name);}
+    if(rn.atLunch)parts.push(rn.name+' (lunch)');
+    else if(isFirst)parts.push(rn.name+' (up front since '+startStr+', '+minsLeft+'m left)');
+    else parts.push(rn.name);
   });
-  const plain=parts.join(', ');
-  // Render with front name highlighted
-  const htmlParts=parts.map((p,i)=>{
-    const rn=roster[i];const isFirst=active[0]===rn&&!rn.atLunch;
-    return isFirst?'<span class="snap-front">'+esc(p)+'</span>':esc(p);
-  });
+  const htmlParts=parts.map((p,i)=>{const rn=roster[i];const isFirst=active[0]===rn&&!rn.atLunch;return isFirst?'<span class="snap-front">'+esc(p)+'</span>':esc(p);});
   txt.innerHTML=htmlParts.length?htmlParts.join(', '):'<span class="snapshot-empty">No one in lineup yet.</span>';
-  txt._plain=plain;
+  txt._plain=parts.join(', ');
 }
 
-function copySnapshot(){
-  const txt=document.getElementById('snapshotText');
-  const text=txt._plain||txt.textContent;
-  navigator.clipboard.writeText(text).then(()=>showToast('Lineup copied'));
-}
+window.copySnapshot=function(){const txt=document.getElementById('snapshotText');const text=txt._plain||txt.textContent;navigator.clipboard.writeText(text).then(()=>showToast('Lineup copied'));};
 function renderPodsAbsent(){
   const section=document.getElementById('absentSection'),listEl=document.getElementById('absentList'),label=document.getElementById('absentToggleLabel');
   if(absentRoster.length===0){section.style.display='none';return;}
@@ -659,10 +967,9 @@ function renderPodsAbsent(){
 }
 function checkPodsCoverage(){const active=getActive(),warn=document.getElementById('podsCoverageWarn'),txt=document.getElementById('podsCoverageWarnText');if(roster.length>0&&active.length===0){txt.textContent='No active RNs. All at lunch.';warn.classList.add('visible');}else if(active.length===1){txt.textContent='Only '+active[0].name+' covering.';warn.classList.add('visible');}else warn.classList.remove('visible');}
 
+// ─── Available Coverage ───────────────────────────────────────────────────────
 function parseTimeToMins(t){if(!t)return null;t=t.trim().toLowerCase();const isPM=t.includes('p')&&!t.includes('12');t=t.replace(/[ap]/g,'');let[h,m]=t.includes(':')?t.split(':').map(Number):[parseInt(t),0];if(isNaN(h))return null;if(isPM&&h!==12)h+=12;return h*60+(m||0);}
-
 function getCurrentBlock(){const now=new Date(),nowMins=now.getHours()*60+now.getMinutes();return availBlocks.find(b=>{const s=parseTimeToMins(b.start),e=parseTimeToMins(b.end);return s!==null&&e!==null&&nowMins>=s&&nowMins<e;})||null;}
-
 function startAvailCountdown(){clearInterval(availCountdownInterval);availCountdownInterval=setInterval(()=>{renderAvailHeader();saveState();},60000);renderAvailHeader();}
 
 function renderAvailHeader(){
@@ -673,7 +980,7 @@ function renderAvailHeader(){
   else{const next=availBlocks.filter(b=>{const s=parseTimeToMins(b.start);return s!==null&&s>nowMins;}).sort((a,b)=>parseTimeToMins(a.start)-parseTimeToMins(b.start))[0];if(next){nameEl.textContent='Next: '+next.name;nameEl.className='avail-current-name';cdEl.textContent='at '+next.start;}else{nameEl.textContent='No active block';nameEl.className='avail-current-name';cdEl.textContent='';}}
 }
 
-function addBlock(){
+window.addBlock=function(){
   const start=document.getElementById('blockStart').value.trim(),end=document.getElementById('blockEnd').value.trim(),name=document.getElementById('blockName').value.trim();
   if(!start||!end||!name){showToast('Fill in start, end, and name');return;}
   if(parseTimeToMins(start)===null||parseTimeToMins(end)===null){showToast('Check time format (e.g. 9a or 10:30a)');return;}
@@ -683,20 +990,18 @@ function addBlock(){
   addLog('<span class="ev-avail">Block added: '+esc(name)+' '+esc(start)+'–'+esc(end)+'</span>','avail');
   document.getElementById('blockStart').value='';document.getElementById('blockEnd').value='';document.getElementById('blockName').value='';
   renderAvail();saveState();showToast(name+' block added');
-}
+};
 
-function removeBlock(idx){const b=availBlocks[idx];showDialog('Remove Block','Remove <strong>'+esc(b.name)+'</strong> ('+esc(b.start)+'–'+esc(b.end)+')?',()=>{availBlocks.splice(idx,1);addLog('<span class="ev-avail">Block removed: '+esc(b.name)+'</span>','avail');renderAvail();saveState();showToast('Block removed');});}
-function incrementCall(idx){availBlocks[idx].callCount++;addLog('<span class="ev-avail">Call logged: <strong>'+esc(availBlocks[idx].name)+'</strong> ('+esc(availBlocks[idx].start)+'–'+esc(availBlocks[idx].end)+'). Total: '+availBlocks[idx].callCount+'</span>','avail');renderAvail();saveState();}
-function decrementCall(idx){if(availBlocks[idx].callCount>0)availBlocks[idx].callCount--;renderAvail();saveState();}
-function toggleUnavail(idx){availBlocks[idx].unavailable=!availBlocks[idx].unavailable;addLog('<span class="ev-avail"><strong>'+esc(availBlocks[idx].name)+'</strong> marked '+(availBlocks[idx].unavailable?'unavailable':'available again')+'</span>','avail');renderAvail();saveState();}
+window.removeBlock=function(idx){const b=availBlocks[idx];showDialog('Remove Block','Remove <strong>'+esc(b.name)+'</strong> ('+esc(b.start)+'–'+esc(b.end)+')?',()=>{availBlocks.splice(idx,1);addLog('<span class="ev-avail">Block removed: '+esc(b.name)+'</span>','avail');renderAvail();saveState();showToast('Block removed');});};
+window.incrementCall=function(idx){availBlocks[idx].callCount++;addLog('<span class="ev-avail">Call logged: <strong>'+esc(availBlocks[idx].name)+'</strong>. Total: '+availBlocks[idx].callCount+'</span>','avail');renderAvail();saveState();};
+window.decrementCall=function(idx){if(availBlocks[idx].callCount>0)availBlocks[idx].callCount--;renderAvail();saveState();};
+window.toggleUnavail=function(idx){availBlocks[idx].unavailable=!availBlocks[idx].unavailable;addLog('<span class="ev-avail"><strong>'+esc(availBlocks[idx].name)+'</strong> marked '+(availBlocks[idx].unavailable?'unavailable':'available again')+'</span>','avail');renderAvail();saveState();};
 
-function addCM(){const input=document.getElementById('cmInput'),name=input.value.trim();if(!name)return;if(cmRNs.find(r=>r.toLowerCase()===name.toLowerCase())){showToast('Already listed');return;}cmRNs.push(name);addLog('<strong>'+esc(name)+'</strong> added to CM list','avail');input.value='';renderAvail();saveState();showToast(name+' added to CM');}
-function removeCM(idx){cmRNs.splice(idx,1);renderAvail();saveState();}
-
-function openAvailResetDialog(){showDialog('Reset Available Coverage','Clear all blocks, CM list, and log?',()=>{availBlocks=[{start:'8:00a',end:'9:00a',name:'All Watch',callCount:0,unavailable:false}];cmRNs=[];availLunchRoster=[];log=[];addLog('Available Coverage reset','system');renderAvail();renderLog();saveState();showToast('Reset');});}
+window.addCM=function(){const input=document.getElementById('cmInput'),name=input.value.trim();if(!name)return;if(cmRNs.find(r=>r.toLowerCase()===name.toLowerCase())){showToast('Already listed');return;}cmRNs.push(name);addLog('<strong>'+esc(name)+'</strong> added to CM list','avail');input.value='';renderAvail();saveState();showToast(name+' added to CM');};
+window.removeCM=function(idx){cmRNs.splice(idx,1);renderAvail();saveState();};
+window.openAvailResetDialog=function(){showDialog('Reset Available Coverage','Clear all blocks, CM list, and log?',()=>{availBlocks=[{start:'8:00a',end:'9:00a',name:'All Watch',callCount:0,unavailable:false}];cmRNs=[];availLunchRoster=[];log=[];addLog('Available Coverage reset','system');renderAvail();renderLog();saveState();showToast('Reset');});};
 
 function renderAvail(){renderAvailHeader();renderCMList();renderAvailBlocks();renderHandoff();checkAvailCoverage();}
-
 function renderCMList(){const list=document.getElementById('cmList');if(cmRNs.length===0){list.innerHTML='<span class="cm-empty">None assigned</span>';return;}list.innerHTML=cmRNs.map((n,i)=>'<div class="cm-chip">'+esc(n)+'<button class="cm-remove" onclick="removeCM('+i+')" title="Remove">✕</button></div>').join('');}
 
 function renderAvailBlocks(){
@@ -714,7 +1019,7 @@ function renderAvailBlocks(){
     if(b.unavailable)badges+='<span class="badge badge-unavail">UNAVAIL</span>';
     const lunchRN=availLunchRoster.find(r=>r.name.toLowerCase()===b.name.toLowerCase());
     let lunchBtn='';
-    if(!isAllWatch&&lunchRN){if(lunchRN.atLunch)lunchBtn='<button class="icon-btn lunch-return" onclick="returnFromLunch(availLunchRoster.find(r=>r.name===\''+b.name.replace(/'/g,"\\'")+'\'),false)">↩</button>';else lunchBtn='<button class="icon-btn go-lunch" title="Going to lunch" onclick="handleGoLunch_avail(\''+b.name.replace(/'/g,"\\'")+'\')">🥗</button>';}
+    if(!isAllWatch&&lunchRN){const safeName=b.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");if(lunchRN.atLunch)lunchBtn='<button class="icon-btn lunch-return" onclick="availReturnFromLunch(\''+safeName+'\')">↩</button>';else lunchBtn='<button class="icon-btn go-lunch" title="Going to lunch" onclick="handleGoLunch_avail(\''+safeName+'\')">🥗</button>';}
     let lunchCD='';if(lunchRN&&lunchRN.atLunch&&lunchRN.lunchSecondsLeft>0)lunchCD=' · 🥗 '+pad(Math.floor(lunchRN.lunchSecondsLeft/60))+':'+pad(lunchRN.lunchSecondsLeft%60);
     const meta=b.unavailable?'Unavailable':(isPast?b.callCount+' call'+(b.callCount!==1?'s':''):(isActive?'Active · '+b.callCount+' call'+(b.callCount!==1?'s':''):'Upcoming'))+lunchCD;
     const div=document.createElement('div');div.className=cc;
@@ -729,7 +1034,8 @@ function renderAvailBlocks(){
   });
 }
 
-function handleGoLunch_avail(name){const rn=availLunchRoster.find(r=>r.name===name);if(!rn)return;showDialog('Going to Lunch','<strong>'+esc(name)+'</strong> heading to lunch now. 30-min countdown starts.',()=>goToLunch(rn));}
+window.availReturnFromLunch=function(name){const rn=availLunchRoster.find(r=>r.name===name);if(rn)returnFromLunch(rn,false);};
+window.handleGoLunch_avail=function(name){const rn=availLunchRoster.find(r=>r.name===name);if(!rn)return;showDialog('Going to Lunch','<strong>'+esc(name)+'</strong> heading to lunch now. 30-min countdown starts.',()=>goToLunch(rn));};
 
 function renderHandoff(){
   const preview=document.getElementById('handoffPreview');
@@ -738,24 +1044,46 @@ function renderHandoff(){
   preview.textContent=completed.map(b=>b.callCount+' call'+(b.callCount!==1?'s':'')+' '+b.start+'–'+b.end+(b.name!=='All Watch'?' ('+b.name+')':'')).join('\n');
 }
 
-function copyHandoff(){const text=document.getElementById('handoffPreview').textContent;if(text==='No completed blocks yet.'){showToast('No completed blocks yet');return;}navigator.clipboard.writeText(text).then(()=>showToast('Handoff message copied'));}
+window.copyHandoff=function(){const text=document.getElementById('handoffPreview').textContent;if(text==='No completed blocks yet.'){showToast('No completed blocks yet');return;}navigator.clipboard.writeText(text).then(()=>showToast('Handoff message copied'));};
 function checkAvailCoverage(){const cur=getCurrentBlock(),warn=document.getElementById('availCoverageWarn'),txt=document.getElementById('availCoverageWarnText');if(cur&&cur.unavailable){txt.textContent=cur.name+' is unavailable. No active coverage.';warn.classList.add('visible');}else warn.classList.remove('visible');}
 
+// ─── Log ──────────────────────────────────────────────────────────────────────
 function addLog(event,type){const now=new Date();log.unshift({time:now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}),event,type});if(log.length>150)log.pop();renderLog();}
 function renderLog(){const list=document.getElementById('logList');if(!log.length){list.innerHTML='<div class="log-empty">No activity yet.</div>';return;}list.innerHTML=log.map(e=>'<div class="log-entry"><span class="log-time">'+e.time+'</span><span class="log-event">'+e.event+'</span></div>').join('');}
-function copyLog(){const text=log.map(e=>'['+e.time+'] '+e.event.replace(/<[^>]+>/g,'')).join('\n');navigator.clipboard.writeText(text).then(()=>showToast('Log copied'));}
+window.copyLog=function(){const text=log.map(e=>'['+e.time+'] '+e.event.replace(/<[^>]+>/g,'')).join('\n');navigator.clipboard.writeText(text).then(()=>showToast('Log copied'));};
 
-function showDialog(title,body,onConfirm){document.getElementById('dialogTitle').textContent=title;document.getElementById('dialogBody').innerHTML=body;document.getElementById('dialogConfirm').onclick=()=>{closeDialog();onConfirm();};document.getElementById('overlay').classList.add('active');}
-function closeDialog(){document.getElementById('overlay').classList.remove('active');}
+// ─── Share lineup ─────────────────────────────────────────────────────────────
+function renderShareLineup(){
+  const section=document.getElementById('shareLineupSection'),preview=document.getElementById('shareLineupPreview');
+  if(!section||!preview)return;
+  const active=getActive();if(active.length===0){section.style.display='none';return;}
+  section.style.display='block';
+  const now=new Date(),frontRN=active[0],minsLeft=Math.ceil(timerSeconds/60);
+  const startMins=ROTATION_DURATION-timerSeconds;
+  const startTime=new Date(now-startMins*1000);
+  const startStr=startTime.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  const parts=[frontRN.name+' (up front since '+startStr+', '+minsLeft+'m left)'];
+  active.slice(1).forEach(rn=>parts.push(rn.name+(rn.type==='evening'?' (Eve)':'')));
+  preview.textContent=parts.join(', ');
+}
+
+window.copyLineup=function(){const text=document.getElementById('shareLineupPreview').textContent;if(!text){showToast('No lineup to copy');return;}navigator.clipboard.writeText(text).then(()=>showToast('Lineup copied'));};
+
+// ─── Dialog / Toast ──────────────────────────────────────────────────────────
+window.showDialog=function(title,body,onConfirm){document.getElementById('dialogTitle').textContent=title;document.getElementById('dialogBody').innerHTML=body;document.getElementById('dialogConfirm').onclick=()=>{closeDialog();onConfirm();};document.getElementById('overlay').classList.add('active');};
+window.closeDialog=function(){document.getElementById('overlay').classList.remove('active');};
 document.getElementById('overlay').addEventListener('click',e=>{if(e.target===document.getElementById('overlay'))closeDialog();});
 
 let toastTimer=null;
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2500);}
-function saveState(){sessionStorage.setItem(STORAGE_KEY,JSON.stringify({mode,roster,absentRoster,timerSeconds,availBlocks,cmRNs,availLunchRoster,log}));}
+window.showToast=showToast;
+
+// ─── Utilities ────────────────────────────────────────────────────────────────
 function pad(n){return String(n).padStart(2,'0');}
 function initials(name){return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
+// ─── Boot ─────────────────────────────────────────────────────────────────────
 init();
 </script>
 
