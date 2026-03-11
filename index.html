@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PODs/Available Lineup</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background-color: #f9f6f1; color: #1a1a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+.app { max-width: 700px; margin: 0 auto; padding: 24px 16px 60px; }
+
+header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; gap: 16px; }
+.brand-label { font-size: 10px; letter-spacing: 0.2em; color: #8a8070; text-transform: uppercase; font-weight: 600; margin-bottom: 2px; }
+.brand-title { font-size: 24px; font-weight: 800; color: #1a1a1a; letter-spacing: -0.02em; line-height: 1.1; }
+.brand-title span.g { color: #1a7a6e; }
+.brand-title span.b { color: #1a5f8a; }
+.date-block { text-align: right; font-size: 11px; color: #8a8070; line-height: 1.6; font-variant-numeric: tabular-nums; }
+
+.mode-badge { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; display: inline-block; margin-top: 5px; }
+.mode-badge.pods { background-color: rgba(26,122,110,0.1); border: 1px solid rgba(26,122,110,0.3); color: #1a7a6e; }
+.mode-badge.avail { background-color: rgba(26,95,138,0.1); border: 1px solid rgba(26,95,138,0.3); color: #1a5f8a; }
+
+.mode-selector { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 16px; padding: 32px 20px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.mode-selector-title { font-size: 17px; font-weight: 800; color: #1a1a1a; margin-bottom: 6px; }
+.mode-selector-sub { font-size: 12px; color: #8a8070; margin-bottom: 28px; line-height: 1.5; }
+.mode-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mode-btn { padding: 22px 14px; border-radius: 12px; border: 1px solid #e0d8cc; background-color: #f9f6f1; cursor: pointer; text-align: left; transition: all 0.15s; }
+.mode-btn.pods-btn:hover { border-color: #1a7a6e; box-shadow: 0 4px 16px rgba(26,122,110,0.12); transform: translateY(-1px); background-color: #f0faf8; }
+.mode-btn.avail-btn:hover { border-color: #1a5f8a; box-shadow: 0 4px 16px rgba(26,95,138,0.12); transform: translateY(-1px); background-color: #f0f5fa; }
+.mode-btn-icon { font-size: 22px; margin-bottom: 8px; }
+.mode-btn-title { font-size: 13px; font-weight: 800; color: #1a1a1a; margin-bottom: 4px; }
+.mode-btn-desc { font-size: 11px; color: #8a8070; line-height: 1.4; }
+
+.switch-row { display: flex; justify-content: flex-end; margin-bottom: 14px; }
+.switch-btn { background: none; border: 1px solid #e0d8cc; color: #8a8070; font-size: 10px; font-weight: 700; padding: 5px 12px; border-radius: 6px; cursor: pointer; }
+.switch-btn:hover { border-color: #8a8070; color: #1a1a1a; }
+
+.section-label { font-size: 10px; letter-spacing: 0.2em; color: #8a8070; text-transform: uppercase; font-weight: 600; margin-bottom: 10px; display: block; }
+
+.coverage-warn { background-color: rgba(192,57,43,0.07); border: 1px solid rgba(192,57,43,0.3); border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; font-size: 13px; color: #c0392b; display: none; align-items: center; gap: 8px; }
+.coverage-warn.visible { display: flex; }
+
+/* Timer */
+.timer-section { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.timer-label { font-size: 10px; letter-spacing: 0.15em; color: #8a8070; text-transform: uppercase; white-space: nowrap; font-weight: 600; }
+.timer-track { flex: 1; height: 6px; background-color: #e0d8cc; border-radius: 3px; overflow: hidden; }
+.timer-fill { height: 100%; background: linear-gradient(90deg,#1a7a6e,#22a090); border-radius: 3px; transition: width 1s linear; width: 100%; }
+.timer-fill.warn { background: linear-gradient(90deg,#b87d1a,#d4941a); }
+.timer-fill.danger { background: linear-gradient(90deg,#c0392b,#e04030); }
+.timer-display { font-size: 18px; font-weight: 700; color: #1a7a6e; min-width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
+.timer-display.warn { color: #b87d1a; }
+.timer-display.danger { color: #c0392b; }
+.timer-btn { background-color: #f3ede4; border: 1px solid #e0d8cc; color: #8a8070; font-size: 11px; padding: 6px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap; font-weight: 600; }
+.timer-btn:hover { border-color: #1a7a6e; color: #1a7a6e; }
+
+/* Lunch plan */
+.lunch-slots { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.lunch-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; }
+.lunch-slot-col { background-color: #f9f6f1; border: 1px solid #e0d8cc; border-radius: 8px; padding: 8px 5px; text-align: center; }
+.lunch-slot-col.active-now { border-color: #7a3fa0; background-color: rgba(122,63,160,0.06); }
+.lunch-slot-time { font-size: 10px; color: #8a8070; margin-bottom: 5px; display: block; font-weight: 600; }
+.lunch-slot-col.active-now .lunch-slot-time { color: #7a3fa0; }
+.lunch-slot-names { font-size: 11px; color: #1a1a1a; line-height: 1.6; min-height: 14px; }
+.lunch-slot-empty { font-size: 10px; color: #c4bdb0; }
+.lunch-name-row { display: flex; align-items: center; justify-content: center; gap: 3px; }
+.lunch-actual-dot { width: 6px; height: 6px; border-radius: 50%; background-color: #7a3fa0; display: inline-block; }
+
+/* Absent */
+.absent-section { margin-bottom: 14px; }
+.absent-toggle { font-size: 10px; letter-spacing: 0.15em; color: #8a8070; text-transform: uppercase; background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 600; }
+.absent-toggle:hover { color: #1a1a1a; }
+.absent-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.absent-chip { background-color: #ffffff; border: 1px dashed #e0d8cc; border-radius: 20px; padding: 5px 12px; font-size: 12px; color: #8a8070; display: flex; align-items: center; gap: 8px; }
+.absent-restore { background: none; border: none; color: #8a8070; cursor: pointer; font-size: 11px; padding: 0; font-weight: 600; }
+.absent-restore:hover { color: #1a7a6e; }
+
+.lineup-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.rn-count { font-size: 10px; color: #8a8070; background-color: #ffffff; border: 1px solid #e0d8cc; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+.lineup-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+
+.empty-state { background-color: #ffffff; border: 1px dashed #e0d8cc; border-radius: 12px; padding: 28px 20px; text-align: center; margin-bottom: 14px; }
+.empty-state-title { font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
+.empty-state-sub { font-size: 12px; color: #8a8070; line-height: 1.5; }
+
+/* RN Cards */
+.rn-card { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 10px; padding: 11px 13px; display: flex; align-items: center; gap: 9px; position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.rn-card::before { content:’’; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; }
+.rn-card.front { border-color: #1a7a6e; box-shadow: 0 2px 8px rgba(26,122,110,0.12); background-color: #f0faf8; }
+.rn-card.front::before { background-color: #1a7a6e; }
+.rn-card.at-lunch { border-color: #7a3fa0; background-color: rgba(122,63,160,0.04); }
+.rn-card.at-lunch::before { background-color: #7a3fa0; }
+.rn-card.evening { border-color: #1a5f8a; background-color: rgba(26,95,138,0.04); }
+.rn-card.evening::before { background-color: #1a5f8a; }
+.rn-card.credited { border-color: #b87d1a; }
+.rn-card.credited::before { background-color: #b87d1a; }
+.rn-card.drag-over { border-color: #1a7a6e; background-color: #f0faf8; }
+
+.position-num { font-size: 12px; color: #8a8070; min-width: 16px; text-align: center; flex-shrink: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+.rn-card.front .position-num { color: #1a7a6e; }
+.rn-card.at-lunch .position-num { color: #7a3fa0; }
+.rn-card.credited .position-num { color: #b87d1a; }
+
+.rn-avatar { width:32px; height:32px; border-radius:50%; background-color:#f3ede4; border:1px solid #e0d8cc; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#8a8070; flex-shrink:0; }
+.rn-card.front .rn-avatar { background-color:rgba(26,122,110,0.1); border-color:#1a7a6e; color:#1a7a6e; }
+.rn-card.at-lunch .rn-avatar { background-color:rgba(122,63,160,0.1); border-color:#7a3fa0; color:#7a3fa0; }
+.rn-card.evening .rn-avatar { background-color:rgba(26,95,138,0.1); border-color:#1a5f8a; color:#1a5f8a; }
+.rn-card.credited .rn-avatar { background-color:rgba(184,125,26,0.1); border-color:#b87d1a; color:#b87d1a; }
+
+.rn-info { flex:1; min-width:0; }
+.rn-name { font-size:14px; font-weight:700; color:#1a1a1a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rn-card.front .rn-name { color:#1a7a6e; }
+.rn-card.at-lunch .rn-name { color:#7a3fa0; }
+.rn-card.evening .rn-name { color:#1a5f8a; }
+.rn-card.credited .rn-name { color:#b87d1a; }
+.rn-meta { font-size:10px; color:#8a8070; margin-top:2px; font-weight:500; }
+
+.rn-badges { display:flex; gap:4px; align-items:center; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end; }
+.badge { font-size:9px; letter-spacing:0.1em; text-transform:uppercase; padding:3px 7px; border-radius:20px; white-space:nowrap; font-weight:700; }
+.badge-front { background-color:rgba(26,122,110,0.1); border:1px solid rgba(26,122,110,0.3); color:#1a7a6e; }
+.badge-lunch { background-color:rgba(122,63,160,0.1); border:1px solid rgba(122,63,160,0.3); color:#7a3fa0; }
+.badge-evening { background-color:rgba(26,95,138,0.1); border:1px solid rgba(26,95,138,0.3); color:#1a5f8a; }
+
+.lunch-countdown { font-size:10px; color:#7a3fa0; background-color:rgba(122,63,160,0.08); border:1px solid rgba(122,63,160,0.3); padding:2px 7px; border-radius:10px; font-weight:700; font-variant-numeric:tabular-nums; }
+.credit-display { font-size:10px; color:#b87d1a; background-color:rgba(184,125,26,0.08); border:1px solid rgba(184,125,26,0.3); padding:2px 7px; border-radius:10px; font-weight:700; font-variant-numeric:tabular-nums; }
+
+.lunch-plan-select { background-color:#f9f6f1; border:1px solid #e0d8cc; color:#8a8070; font-size:10px; padding:5px 4px; border-radius:6px; cursor:pointer; outline:none; max-width:82px; flex-shrink:0; font-weight:600; }
+.lunch-plan-select.set { color:#7a3fa0; border-color:rgba(122,63,160,0.3); background-color:rgba(122,63,160,0.06); }
+
+.rn-actions { display:flex; gap:3px; align-items:center; flex-shrink:0; }
+.icon-btn { background:none; border:1px solid transparent; color:#c4bdb0; cursor:pointer; padding:5px; border-radius:6px; font-size:13px; line-height:1; display:flex; align-items:center; white-space:nowrap; }
+.icon-btn:hover { border-color:#e0d8cc; color:#4a4a4a; background-color:#f3ede4; }
+.icon-btn.to-back:hover { color:#b87d1a; border-color:#b87d1a; background-color:rgba(184,125,26,0.06); }
+.icon-btn.to-front:hover { color:#1a7a6e; border-color:#1a7a6e; background-color:rgba(26,122,110,0.06); }
+.icon-btn.go-lunch:hover { color:#7a3fa0; border-color:#7a3fa0; background-color:rgba(122,63,160,0.06); }
+.icon-btn.lunch-return:hover { color:#7a3fa0; border-color:#7a3fa0; }
+.icon-btn.absent:hover { color:#8a8070; border-color:#8a8070; }
+.drag-handle { color:#c4bdb0; font-size:12px; cursor:grab; padding:2px 3px; border-radius:4px; user-select:none; flex-shrink:0; }
+.drag-handle:hover { color:#8a8070; }
+
+/* Lineup snapshot */
+.lineup-snapshot { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:10px; padding:11px 14px; margin-bottom:10px; display:flex; align-items:center; gap:10px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+.snapshot-text { flex:1; font-size:13px; color:#4a4a4a; line-height:1.5; font-weight:500; min-width:0; }
+.snapshot-text .snap-front { font-weight:800; color:#1a7a6e; }
+.snapshot-empty { color:#c4bdb0; font-style:italic; }
+.copy-snap-btn { background-color:rgba(26,122,110,0.1); border:1px solid rgba(26,122,110,0.3); color:#1a7a6e; font-size:11px; font-weight:700; padding:6px 12px; border-radius:7px; cursor:pointer; white-space:nowrap; flex-shrink:0; }
+.copy-snap-btn:hover { background-color:#1a7a6e; color:#ffffff; }
+
+.call-btn { width:100%; padding:16px 24px; background-color:#1a7a6e; border:none; border-radius:12px; font-size:15px; font-weight:800; color:#ffffff; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:10px; }
+.call-btn:hover { background-color:#15695e; transform:translateY(-1px); box-shadow:0 6px 20px rgba(26,122,110,0.25); }
+.call-btn:active { transform:translateY(0); }
+.call-btn .front-name { opacity:.75; font-weight:600; font-size:13px; }
+.call-btn:disabled { opacity:.35; cursor:not-allowed; transform:none; box-shadow:none; }
+
+.secondary-actions { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:14px; }
+.sec-btn { padding:11px 8px; background-color:#ffffff; border:1px solid #e0d8cc; border-radius:10px; color:#8a8070; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+.sec-btn:hover { border-color:#8a8070; color:#1a1a1a; background-color:#f3ede4; }
+
+.add-section { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:12px; padding:12px 14px; margin-bottom:14px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
+.add-input { flex:1; min-width:130px; background-color:#f9f6f1; border:1px solid #e0d8cc; border-radius:8px; padding:10px 12px; color:#1a1a1a; font-size:14px; outline:none; font-weight:600; }
+.add-input::placeholder { color:#c4bdb0; }
+.add-input:focus { border-color:#1a7a6e; }
+.add-type-select { background-color:#f9f6f1; border:1px solid #e0d8cc; color:#4a4a4a; font-size:11px; padding:10px 8px; border-radius:8px; cursor:pointer; outline:none; font-weight:600; }
+.add-btn { background-color:rgba(26,122,110,0.1); border:1px solid rgba(26,122,110,0.3); color:#1a7a6e; font-size:14px; font-weight:800; padding:10px 18px; border-radius:8px; cursor:pointer; white-space:nowrap; }
+.add-btn:hover { background-color:#1a7a6e; color:#ffffff; }
+
+/* Available Coverage */
+.avail-header-bar { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:12px; padding:14px 16px; margin-bottom:14px; display:flex; align-items:center; gap:12px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
+.avail-current-label { font-size:10px; letter-spacing:0.15em; color:#8a8070; text-transform:uppercase; font-weight:600; white-space:nowrap; }
+.avail-current-name { font-size:18px; font-weight:800; color:#1a5f8a; flex:1; }
+.avail-current-name.all-watch { color:#1a7a6e; }
+.avail-countdown { font-size:15px; font-weight:700; color:#8a8070; font-variant-numeric:tabular-nums; min-width:52px; text-align:right; }
+.avail-countdown.soon { color:#b87d1a; }
+
+.avail-blocks-section { margin-bottom:14px; }
+.avail-block-list { display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
+
+.avail-block { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:10px; padding:11px 14px; display:flex; align-items:center; gap:10px; position:relative; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+.avail-block::before { content:’’; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; background-color:transparent; }
+.avail-block.active-block { border-color:#1a5f8a; background-color:rgba(26,95,138,0.04); box-shadow:0 2px 8px rgba(26,95,138,0.1); }
+.avail-block.active-block::before { background-color:#1a5f8a; }
+.avail-block.all-watch-block.active-block { border-color:#1a7a6e; background-color:rgba(26,122,110,0.04); box-shadow:0 2px 8px rgba(26,122,110,0.1); }
+.avail-block.all-watch-block.active-block::before { background-color:#1a7a6e; }
+.avail-block.past-block { opacity:.5; }
+.avail-block.unavail-block { border-color:#b87d1a; background-color:rgba(184,125,26,0.04); }
+.avail-block.unavail-block::before { background-color:#b87d1a; }
+
+.avail-block-time { font-size:11px; font-weight:700; color:#8a8070; min-width:80px; flex-shrink:0; font-variant-numeric:tabular-nums; }
+.avail-block.active-block .avail-block-time { color:#1a5f8a; }
+.avail-block.all-watch-block.active-block .avail-block-time { color:#1a7a6e; }
+
+.avail-block-avatar { width:30px; height:30px; border-radius:50%; background-color:#f3ede4; border:1px solid #e0d8cc; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#8a8070; flex-shrink:0; }
+.avail-block.active-block .avail-block-avatar { background-color:rgba(26,95,138,0.1); border-color:#1a5f8a; color:#1a5f8a; }
+.avail-block.all-watch-block.active-block .avail-block-avatar { background-color:rgba(26,122,110,0.1); border-color:#1a7a6e; color:#1a7a6e; }
+
+.avail-block-info { flex:1; min-width:0; }
+.avail-block-name { font-size:14px; font-weight:700; color:#1a1a1a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.avail-block.active-block .avail-block-name { color:#1a5f8a; }
+.avail-block.all-watch-block.active-block .avail-block-name { color:#1a7a6e; }
+.avail-block-meta { font-size:10px; color:#8a8070; margin-top:2px; font-weight:500; }
+
+.avail-block-badges { display:flex; gap:4px; align-items:center; flex-shrink:0; }
+.badge-active { background-color:rgba(26,95,138,0.1); border:1px solid rgba(26,95,138,0.3); color:#1a5f8a; }
+.badge-unavail { background-color:rgba(184,125,26,0.1); border:1px solid rgba(184,125,26,0.3); color:#b87d1a; }
+.badge-past { background-color:rgba(138,128,112,0.1); border:1px solid rgba(138,128,112,0.2); color:#8a8070; }
+.badge-allwatch { background-color:rgba(26,122,110,0.1); border:1px solid rgba(26,122,110,0.3); color:#1a7a6e; }
+
+.avail-block-actions { display:flex; gap:3px; align-items:center; flex-shrink:0; }
+.call-count-btn { background-color:#f3ede4; border:1px solid #e0d8cc; color:#1a1a1a; font-size:12px; font-weight:800; padding:5px 10px; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:4px; min-width:36px; justify-content:center; font-variant-numeric:tabular-nums; }
+.call-count-btn:hover { border-color:#1a5f8a; color:#1a5f8a; }
+.call-count-label { font-size:9px; color:#8a8070; font-weight:600; }
+
+.add-block-section { background-color:#ffffff; border:1px dashed #e0d8cc; border-radius:10px; padding:12px 14px; margin-bottom:14px; }
+.add-block-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.block-time-input { background-color:#f9f6f1; border:1px solid #e0d8cc; border-radius:8px; padding:9px 10px; color:#1a1a1a; font-size:13px; outline:none; font-weight:600; width:95px; }
+.block-time-input:focus { border-color:#1a5f8a; }
+.block-name-input { flex:1; min-width:100px; background-color:#f9f6f1; border:1px solid #e0d8cc; border-radius:8px; padding:9px 12px; color:#1a1a1a; font-size:13px; outline:none; font-weight:600; }
+.block-name-input::placeholder { color:#c4bdb0; }
+.block-name-input:focus { border-color:#1a5f8a; }
+.add-block-btn { background-color:rgba(26,95,138,0.1); border:1px solid rgba(26,95,138,0.3); color:#1a5f8a; font-size:13px; font-weight:800; padding:9px 16px; border-radius:8px; cursor:pointer; white-space:nowrap; }
+.add-block-btn:hover { background-color:#1a5f8a; color:#ffffff; }
+
+.cm-section { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:12px; padding:14px 16px; margin-bottom:14px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
+.cm-list { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+.cm-chip { background-color:#f3ede4; border:1px solid #e0d8cc; border-radius:20px; padding:6px 14px; font-size:12px; color:#4a4a4a; display:flex; align-items:center; gap:8px; }
+.cm-remove { background:none; border:none; color:#c4bdb0; cursor:pointer; font-size:11px; padding:0; }
+.cm-remove:hover { color:#c0392b; }
+.cm-empty { font-size:11px; color:#c4bdb0; }
+.add-cm-row { display:flex; gap:8px; margin-top:10px; }
+.add-cm-input { flex:1; background-color:#f9f6f1; border:1px solid #e0d8cc; border-radius:8px; padding:8px 12px; color:#1a1a1a; font-size:13px; outline:none; font-weight:600; }
+.add-cm-input::placeholder { color:#c4bdb0; }
+.add-cm-input:focus { border-color:#8a8070; }
+.add-cm-btn { background-color:#f3ede4; border:1px solid #e0d8cc; color:#8a8070; font-size:12px; font-weight:800; padding:8px 14px; border-radius:8px; cursor:pointer; }
+.add-cm-btn:hover { border-color:#8a8070; color:#1a1a1a; }
+
+.handoff-section { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:12px; padding:14px 16px; margin-bottom:14px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
+.handoff-preview { font-size:12px; color:#4a4a4a; background-color:#f9f6f1; border-radius:8px; padding:10px 12px; margin-top:8px; font-family:monospace; line-height:1.6; white-space:pre-wrap; border:1px solid #e0d8cc; }
+.copy-handoff-btn { margin-top:10px; background-color:rgba(26,95,138,0.1); border:1px solid rgba(26,95,138,0.3); color:#1a5f8a; font-size:11px; font-weight:700; padding:7px 14px; border-radius:8px; cursor:pointer; }
+.copy-handoff-btn:hover { background-color:#1a5f8a; color:#ffffff; }
+
+.log-section { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:12px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
+.log-header { padding:12px 16px; border-bottom:1px solid #e0d8cc; display:flex; align-items:center; justify-content:space-between; }
+.copy-log-btn { font-size:10px; color:#8a8070; background:none; border:1px solid #e0d8cc; padding:4px 10px; border-radius:6px; cursor:pointer; font-weight:600; }
+.copy-log-btn:hover { border-color:rgba(26,122,110,0.3); color:#1a7a6e; }
+.log-list { max-height:200px; overflow-y:auto; padding:6px 0; }
+.log-list::-webkit-scrollbar { width:4px; }
+.log-list::-webkit-scrollbar-thumb { background-color:#e0d8cc; border-radius:2px; }
+.log-entry { padding:7px 16px; display:flex; align-items:baseline; gap:10px; border-bottom:1px solid #f3ede4; }
+.log-entry:last-child { border-bottom:none; }
+.log-time { font-size:10px; color:#8a8070; white-space:nowrap; min-width:52px; font-weight:600; font-variant-numeric:tabular-nums; }
+.log-event { font-size:12px; color:#4a4a4a; line-height:1.4; }
+.log-event strong { color:#1a7a6e; font-weight:700; }
+.log-event .ev-avail { color:#1a5f8a; }
+.log-event .ev-lunch { color:#7a3fa0; }
+.log-event .ev-auto { color:#b87d1a; }
+.log-event .ev-back { color:#b87d1a; }
+.log-event .ev-credit { color:#b87d1a; }
+.log-empty { padding:20px 16px; font-size:11px; color:#8a8070; text-align:center; }
+
+.overlay { position:fixed; inset:0; background-color:rgba(26,20,14,0.5); z-index:100; display:flex; align-items:center; justify-content:center; padding:24px; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.overlay.active { opacity:1; pointer-events:all; }
+.dialog { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:16px; padding:24px 20px; max-width:360px; width:100%; box-shadow:0 16px 48px rgba(0,0,0,0.15); transform:translateY(16px); transition:transform 0.2s; }
+.overlay.active .dialog { transform:translateY(0); }
+.dialog-title { font-size:17px; font-weight:800; color:#1a1a1a; margin-bottom:8px; }
+.dialog-body { font-size:13px; color:#4a4a4a; margin-bottom:20px; line-height:1.5; }
+.dialog-body strong { color:#1a7a6e; }
+.dialog-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.dialog-cancel { padding:11px; background-color:#f9f6f1; border:1px solid #e0d8cc; border-radius:8px; color:#8a8070; font-size:13px; font-weight:700; cursor:pointer; }
+.dialog-cancel:hover { border-color:#8a8070; color:#1a1a1a; }
+.dialog-confirm { padding:11px; background-color:#1a7a6e; border:none; border-radius:8px; color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; }
+.dialog-confirm:hover { background-color:#15695e; }
+
+.toast { position:fixed; bottom:24px; right:24px; background-color:#1a1a1a; border-radius:10px; padding:11px 16px; font-size:12px; color:#ffffff; font-weight:700; z-index:200; transform:translateY(20px); opacity:0; transition:all 0.25s; pointer-events:none; }
+.toast.show { transform:translateY(0); opacity:1; }
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <div class="brand-label">CCMU1 Coverage</div>
+      <div class="brand-title">PODs/<span class="b">Available</span> <span class="g">Lineup</span></div>
+      <div id="modeBadge"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+      <div class="date-block" id="dateBlock"></div>
+      <button class="switch-btn" onclick="confirmSwitchMode()" id="switchBtn" style="display:none">Switch mode</button>
+    </div>
+  </header>
+
+  <div id="modeSelectorScreen">
+    <div class="mode-selector">
+      <div class="mode-selector-title">What kind of day is it?</div>
+      <div class="mode-selector-sub">Select the coverage mode for today.<br>This sets up the app for the shift.</div>
+      <div class="mode-btns">
+        <button class="mode-btn pods-btn" onclick="setMode('pods')">
+          <div class="mode-btn-icon">🔄</div>
+          <div class="mode-btn-title">PODs Day</div>
+          <div class="mode-btn-desc">Rotating call queue. Nurses join and take calls in order.</div>
+        </button>
+        <button class="mode-btn avail-btn" onclick="setMode('avail')">
+          <div class="mode-btn-icon">📋</div>
+          <div class="mode-btn-title">Available Coverage</div>
+          <div class="mode-btn-desc">Time block schedule. Each RN owns a coverage window.</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="podsScreen" style="display:none">
+    <div class="coverage-warn" id="podsCoverageWarn">⚠️ <span id="podsCoverageWarnText"></span></div>
+    <div class="timer-section">
+      <span class="timer-label">Auto-rotate</span>
+      <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
+      <div class="timer-display" id="timerDisplay">30:00</div>
+      <button class="timer-btn" id="timerToggle">Pause</button>
+      <button class="timer-btn" id="timerReset">Reset</button>
+    </div>
+    <div class="lunch-slots">
+      <span class="section-label">Lunch Plan</span>
+      <div class="lunch-grid" id="podsLunchGrid"></div>
+    </div>
+    <div class="absent-section" id="absentSection" style="display:none">
+      <button class="absent-toggle" onclick="toggleAbsentView()">
+        <span id="absentToggleIcon">▸</span>
+        <span id="absentToggleLabel">Removed (0)</span>
+      </button>
+      <div class="absent-list" id="absentList" style="display:none"></div>
+    </div>
+    <div class="lineup-header">
+      <span class="section-label" style="margin:0">Current Lineup</span>
+      <span class="rn-count" id="rnCount">0 RNs</span>
+    </div>
+    <div id="lineupContainer"></div>
+    <div class="lineup-snapshot" id="lineupSnapshot" style="display:none">
+      <div class="snapshot-text" id="snapshotText"></div>
+      <button class="copy-snap-btn" onclick="copySnapshot()">Copy lineup</button>
+    </div>
+    <button class="call-btn" id="callBtn" onclick="handleTookCall()">
+      <span>📞 Took a Call</span>
+      <span class="front-name" id="callBtnName"></span>
+    </button>
+    <div class="secondary-actions">
+      <button class="sec-btn" onclick="manualRotate()">↻ Rotate</button>
+      <button class="sec-btn" onclick="openAddEveningHint()">🌙 Evening RN</button>
+      <button class="sec-btn" onclick="openPodsResetDialog()">⟲ Reset</button>
+    </div>
+    <div class="add-section">
+      <input class="add-input" id="addInput" placeholder="Type your name to join..." maxlength="32" onkeydown="if(event.key==='Enter') addRN()">
+      <select class="add-type-select" id="addType">
+        <option value="standard">Standard</option>
+        <option value="evening">Evening</option>
+      </select>
+      <button class="add-btn" onclick="addRN()">Join</button>
+    </div>
+  </div>
+
+  <div id="availScreen" style="display:none">
+    <div class="coverage-warn" id="availCoverageWarn">⚠️ <span id="availCoverageWarnText"></span></div>
+    <div class="avail-header-bar">
+      <span class="avail-current-label">Now covering</span>
+      <span class="avail-current-name" id="availCurrentName">—</span>
+      <span class="avail-countdown" id="availCountdown"></span>
+    </div>
+    <div class="cm-section">
+      <span class="section-label" style="margin-bottom:6px">Case Management Today</span>
+      <div class="cm-list" id="cmList"><span class="cm-empty">None assigned</span></div>
+      <div class="add-cm-row">
+        <input class="add-cm-input" id="cmInput" placeholder="Add CM RN name..." maxlength="32" onkeydown="if(event.key==='Enter') addCM()">
+        <button class="add-cm-btn" onclick="addCM()">Add</button>
+      </div>
+    </div>
+    <div class="avail-blocks-section">
+      <div class="lineup-header">
+        <span class="section-label" style="margin:0">Coverage Schedule</span>
+        <button class="sec-btn" style="padding:5px 12px;font-size:10px" onclick="openAvailResetDialog()">⟲ Reset</button>
+      </div>
+      <div class="avail-block-list" id="availBlockList"></div>
+      <div class="add-block-section">
+        <span class="section-label" style="margin-bottom:8px">Add Coverage Block</span>
+        <div class="add-block-row">
+          <input class="block-time-input" id="blockStart" placeholder="9a" maxlength="8">
+          <span style="color:#8a8070;font-size:12px;font-weight:700;flex-shrink:0">to</span>
+          <input class="block-time-input" id="blockEnd" placeholder="10a" maxlength="8">
+          <input class="block-name-input" id="blockName" placeholder="RN name or All Watch" maxlength="32" onkeydown="if(event.key==='Enter') addBlock()">
+          <button class="add-block-btn" onclick="addBlock()">Add</button>
+        </div>
+      </div>
+    </div>
+    <div class="handoff-section">
+      <span class="section-label" style="margin-bottom:4px">Handoff Message</span>
+      <div class="handoff-preview" id="handoffPreview">No completed blocks yet.</div>
+      <button class="copy-handoff-btn" onclick="copyHandoff()">Copy handoff message</button>
+    </div>
+  </div>
+
+  <div class="log-section" id="logSection" style="display:none">
+    <div class="log-header">
+      <span class="section-label" style="margin:0">Activity Log</span>
+      <button class="copy-log-btn" onclick="copyLog()">Copy log</button>
+    </div>
+    <div class="log-list" id="logList"><div class="log-empty">No activity yet.</div></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="dialog">
+    <div class="dialog-title" id="dialogTitle">Confirm</div>
+    <div class="dialog-body" id="dialogBody"></div>
+    <div class="dialog-actions">
+      <button class="dialog-cancel" onclick="closeDialog()">Cancel</button>
+      <button class="dialog-confirm" id="dialogConfirm">Confirm</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const LUNCH_PLAN_SLOTS=['~12:00','~12:15','~12:30','~12:45','~3:30'];
+const LUNCH_SLOT_TIMES=['12:00','12:15','12:30','12:45','3:30'];
+const LUNCH_DURATION=30*60,ROTATION_DURATION=30*60,CREDIT_MINIMUM=5*60;
+const STORAGE_KEY='pods_avail_v2';
+
+let mode=null,roster=[],absentRoster=[],timerSeconds=ROTATION_DURATION,timerRunning=true;
+let timerInterval=null,lunchInterval=null,dragSrc=null,absentOpen=false;
+let availBlocks=[],cmRNs=[],availLunchRoster=[],log=[];
+let availCountdownInterval=null,clockInterval=null;
+
+function init(){
+  const saved=sessionStorage.getItem(STORAGE_KEY);
+  if(saved){try{const s=JSON.parse(saved);mode=s.mode||null;roster=s.roster||[];absentRoster=s.absentRoster||[];timerSeconds=s.timerSeconds||ROTATION_DURATION;availBlocks=s.availBlocks||[];cmRNs=s.cmRNs||[];availLunchRoster=s.availLunchRoster||[];log=s.log||[];}catch{fullReset();}}
+  updateDate();renderMode();
+  if(mode==='pods'){startPodsTimer();startLunchWatcher();}
+  if(mode==='avail'){startAvailCountdown();startLunchWatcher();}
+  clockInterval=setInterval(updateDate,30000);
+}
+
+function fullReset(){mode=null;roster=[];absentRoster=[];timerSeconds=ROTATION_DURATION;availBlocks=[];cmRNs=[];availLunchRoster=[];log=[];}
+
+function setMode(m){
+  mode=m;
+  if(m==='pods'){addLog('PODs Day started','system');startPodsTimer();startLunchWatcher();}
+  else{if(!availBlocks.find(b=>b.start==='8:00a'))availBlocks.unshift({start:'8:00a',end:'9:00a',name:'All Watch',callCount:0,unavailable:false});addLog('Available Coverage Day started','system');startAvailCountdown();startLunchWatcher();}
+  saveState();renderMode();
+}
+
+function renderMode(){
+  document.getElementById('modeSelectorScreen').style.display=mode?'none':'block';
+  document.getElementById('podsScreen').style.display=mode==='pods'?'block':'none';
+  document.getElementById('availScreen').style.display=mode==='avail'?'block':'none';
+  document.getElementById('logSection').style.display=mode?'block':'none';
+  document.getElementById('switchBtn').style.display=mode?'block':'none';
+  const badge=document.getElementById('modeBadge');
+  if(mode==='pods') badge.innerHTML='<span class="mode-badge pods">PODs Day</span>';
+  else if(mode==='avail') badge.innerHTML='<span class="mode-badge avail">Available Coverage</span>';
+  else badge.innerHTML='';
+  if(mode==='pods') renderPods();
+  if(mode==='avail') renderAvail();
+  renderLog();
+}
+
+function confirmSwitchMode(){showDialog('Switch Coverage Mode','This will clear the current lineup and log. Are you sure?',()=>{fullReset();saveState();clearInterval(timerInterval);clearInterval(availCountdownInterval);renderMode();showToast('Mode cleared');});}
+
+function updateDate(){
+  const now=new Date();
+  document.getElementById('dateBlock').innerHTML=now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+'<br>'+now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  if(mode==='avail') renderAvailHeader();
+}
+
+function startPodsTimer(){
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{if(!timerRunning)return;timerSeconds--;if(timerSeconds<=0){autoRotate();timerSeconds=ROTATION_DURATION;}renderTimer();if(mode==='pods')renderLineupSnapshot();saveState();},1000);
+  renderTimer();
+}
+
+function renderTimer(){
+  const m=Math.floor(timerSeconds/60),s=timerSeconds%60,pct=(timerSeconds/ROTATION_DURATION)*100;
+  const fill=document.getElementById('timerFill'),disp=document.getElementById('timerDisplay');
+  if(!fill||!disp)return;
+  disp.textContent=pad(m)+':'+pad(s);fill.style.width=pct+'%';
+  const cls=timerSeconds<=60?'danger':timerSeconds<=300?'warn':'';
+  fill.className='timer-fill'+(cls?' '+cls:'');disp.className='timer-display'+(cls?' '+cls:'');
+}
+
+document.getElementById('timerToggle').onclick=()=>{timerRunning=!timerRunning;document.getElementById('timerToggle').textContent=timerRunning?'Pause':'Resume';};
+document.getElementById('timerReset').onclick=()=>{timerSeconds=ROTATION_DURATION;renderTimer();showToast('Timer reset');};
+
+function getLunchRoster(){return mode==='pods'?roster:availLunchRoster;}
+
+function startLunchWatcher(){
+  clearInterval(lunchInterval);
+  lunchInterval=setInterval(()=>{let changed=false;getLunchRoster().forEach(rn=>{if(rn.atLunch&&rn.lunchSecondsLeft>0){rn.lunchSecondsLeft--;if(rn.lunchSecondsLeft<=0){returnFromLunch(rn,true);changed=true;}else changed=true;}});if(changed){if(mode==='pods')renderPods();else renderAvail();saveState();}},1000);
+}
+
+function goToLunch(rn){
+  if(rn.atLunch)return;
+  const isFront=mode==='pods'&&getActive()[0]===rn;
+  const timeLeft=isFront?timerSeconds:0;
+  rn.frontCredit=timeLeft>CREDIT_MINIMUM?timeLeft:0;
+  rn.atLunch=true;rn.lunchSecondsLeft=LUNCH_DURATION;
+  rn.lunchActualTime=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  rn.originalPosition=getLunchRoster().indexOf(rn);
+  const planNote=rn.lunchSlot?' (planned '+rn.lunchSlot+')':'';
+  const creditNote=rn.frontCredit>0?' — <span class="ev-credit">'+Math.floor(rn.frontCredit/60)+' min credit saved</span>':(timeLeft>0&&timeLeft<=CREDIT_MINIMUM?' — ≤5 min, no credit':'');
+  addLog('<strong>'+esc(rn.name)+'</strong> <span class="ev-lunch">🥗 lunch at '+rn.lunchActualTime+planNote+'</span>'+creditNote,'lunch');
+  if(isFront){timerSeconds=ROTATION_DURATION;renderTimer();}
+  if(mode==='pods')renderPods();else renderAvail();
+  saveState();showToast(rn.name+' at lunch. Back in 30 min.');
+}
+
+function returnFromLunch(rn,auto){
+  rn.atLunch=false;rn.lunchSecondsLeft=0;
+  const hasCredit=rn.frontCredit>0;
+  if(mode==='pods'&&!hasCredit){const idx=roster.indexOf(rn);if(idx>-1){roster.splice(idx,1);roster.push(rn);}}
+  addLog('<strong>'+esc(rn.name)+'</strong> <span class="ev-lunch">back from lunch'+(auto?' (auto)':'')+'</span>'+(hasCredit?' — <span class="ev-credit">'+Math.floor(rn.frontCredit/60)+' min credit</span>':' — moved to back (no credit)'),'lunch');
+  if(mode==='pods')renderPods();else renderAvail();
+  saveState();showToast(rn.name+' back'+(hasCredit?' — '+Math.floor(rn.frontCredit/60)+'m credit':''));
+}
+
+function applyCreditIfNeeded(){
+  const front=getFrontRN();
+  if(front&&front.frontCredit>0){timerSeconds=front.frontCredit;front.frontCredit=0;renderTimer();addLog('<strong>'+esc(front.name)+'</strong> <span class="ev-credit">front credit applied — '+pad(Math.floor(timerSeconds/60))+':'+pad(timerSeconds%60)+'</span>','credit');saveState();}
+}
+
+function setLunchPlan(roster_ref,idx,slot){roster_ref[idx].lunchSlot=slot||null;renderLunchGrid(roster_ref,'podsLunchGrid');saveState();}
+
+function renderLunchGrid(roster_ref,gridId){
+  const grid=document.getElementById(gridId);if(!grid)return;
+  const now=new Date(),nowMins=now.getHours()*60+now.getMinutes();
+  grid.innerHTML=LUNCH_PLAN_SLOTS.map((slot,si)=>{
+    const assigned=roster_ref.filter(rn=>rn.lunchSlot===slot);
+    const slotMins=slotToMins(LUNCH_SLOT_TIMES[si]);
+    const isNow=nowMins>=slotMins&&nowMins<slotMins+30;
+    const namesHTML=assigned.length?assigned.map(rn=>'<div class="lunch-name-row">'+(rn.atLunch?'<span class="lunch-actual-dot"></span>':'')+esc(rn.name)+'</div>').join(''):'<div class="lunch-slot-empty">—</div>';
+    return '<div class="lunch-slot-col'+(isNow?' active-now':'')+'"><span class="lunch-slot-time">'+slot+'</span><div class="lunch-slot-names">'+namesHTML+'</div></div>';
+  }).join('');
+}
+
+function slotToMins(s){if(s==='3:30')return 15*60+30;const[h,m]=s.split(':').map(Number);return h*60+m;}
+
+function getActive(){return roster.filter(rn=>!rn.atLunch);}
+function getFrontRN(){return getActive()[0]||null;}
+
+function rotate(reason,specificRN){
+  const active=getActive();if(active.length<2){showToast('Need 2+ active RNs to rotate');return;}
+  const target=specificRN||active[0];const idx=roster.indexOf(target);roster.splice(idx,1);roster.push(target);
+  const next=getFrontRN();
+  const label=reason==='auto'?'<span class="ev-auto">(auto 30 min)</span>':reason==='call-front'?'(took a call)':reason==='call-back'?'<span class="ev-back">(out of turn)</span>':'(manual)';
+  addLog('<strong>'+esc(target.name)+'</strong> → back '+label+'. Front: <strong>'+esc(next?next.name:'—')+'</strong>',reason);
+  timerSeconds=ROTATION_DURATION;renderTimer();applyCreditIfNeeded();renderPods();saveState();
+  if(next)showToast(next.name+' is now up front');
+}
+
+function autoRotate(){rotate('auto');}
+function manualRotate(){rotate('manual');}
+
+function handleTookCall(){const front=getFrontRN();if(!front)return;showDialog('Confirm Call Rotation','<strong>'+esc(front.name)+'</strong> took a call and moves to the back. Timer resets.',()=>rotate('call-front'));}
+function handleTookCallBack(idx){const rn=roster[idx];showDialog('Took a Call Out of Turn','<strong>'+esc(rn.name)+'</strong> took a call and will move to the back.',()=>rotate('call-back',rn));}
+
+function markAbsent(idx){const rn=roster.splice(idx,1)[0];rn.atLunch=false;rn.lunchSecondsLeft=0;rn.lunchSlot=null;rn.frontCredit=0;absentRoster.push(rn);addLog('<strong>'+esc(rn.name)+'</strong> removed','absent');renderPods();saveState();showToast(rn.name+' removed');}
+function restoreFromAbsent(idx){const rn=absentRoster.splice(idx,1)[0];roster.push(rn);addLog('<strong>'+esc(rn.name)+'</strong> restored','manual');renderPods();saveState();showToast(rn.name+' restored');}
+function toggleAbsentView(){absentOpen=!absentOpen;document.getElementById('absentList').style.display=absentOpen?'flex':'none';document.getElementById('absentToggleIcon').textContent=absentOpen?'▾':'▸';}
+
+function addRN(){
+  const input=document.getElementById('addInput'),type=document.getElementById('addType').value,name=input.value.trim();if(!name)return;
+  if(roster.find(r=>r.name.toLowerCase()===name.toLowerCase())||absentRoster.find(r=>r.name.toLowerCase()===name.toLowerCase())){showToast('Already in lineup');return;}
+  const newRN={name,type,lunchSlot:null,atLunch:false,lunchSecondsLeft:0,lunchActualTime:null,frontCredit:0,originalPosition:roster.length};
+  if(type==='evening'){const active=getActive();const fi=active.length>0?roster.indexOf(active[0]):roster.length-1;roster.splice(fi+1,0,newRN);addLog('<strong>'+esc(name)+'</strong> joined as Evening RN','evening');}
+  else{roster.push(newRN);addLog('<strong>'+esc(name)+'</strong> joined the lineup','join');}
+  input.value='';renderPods();saveState();showToast(name+' joined');
+}
+
+function moveToFront(idx){const rn=roster[idx];roster.splice(idx,1);roster.unshift(rn);timerSeconds=ROTATION_DURATION;renderTimer();applyCreditIfNeeded();addLog('<strong>'+esc(rn.name)+'</strong> moved to front','manual');renderPods();saveState();showToast(rn.name+' moved to front');}
+function openAddEveningHint(){document.getElementById('addType').value='evening';document.getElementById('addInput').focus();showToast('Type evening RN name and tap Join');}
+function openPodsResetDialog(){showDialog('Reset PODs Lineup','Clear lineup and log to start fresh?',()=>{roster=[];absentRoster=[];timerSeconds=ROTATION_DURATION;log=[];addLog('Lineup reset','system');renderTimer();renderPods();renderLog();saveState();showToast('Lineup cleared');});}
+
+function renderPods(){renderLunchGrid(roster,'podsLunchGrid');renderPodsLineup();renderLineupSnapshot();renderPodsCallBtn();renderPodsAbsent();checkPodsCoverage();}
+
+function renderPodsLineup(){
+  const container=document.getElementById('lineupContainer');
+  if(roster.length===0){container.innerHTML='<div class="empty-state"><div class="empty-state-title">No one in the lineup yet</div><div class="empty-state-sub">Type your name below and tap Join.<br>First in is up front.</div></div>';document.getElementById('rnCount').textContent='0 RNs';return;}
+  const listEl=document.createElement('div');listEl.className='lineup-list';
+  const active=getActive(),frontRN=active[0];let activePos=0;
+  roster.forEach((rn,i)=>{
+    const isFront=rn===frontRN&&!rn.atLunch;if(!rn.atLunch)activePos++;
+    const dispPos=rn.atLunch?'—':activePos,hasCredit=!rn.atLunch&&rn.frontCredit>0;
+    const card=document.createElement('div');
+    let cc='rn-card';if(isFront)cc+=' front';else if(rn.atLunch)cc+=' at-lunch';else if(hasCredit)cc+=' credited';else if(rn.type==='evening')cc+=' evening';
+    card.className=cc;card.draggable=!rn.atLunch;
+    let lunchCD='';if(rn.atLunch&&rn.lunchSecondsLeft>0)lunchCD='<span class="lunch-countdown">'+pad(Math.floor(rn.lunchSecondsLeft/60))+':'+pad(rn.lunchSecondsLeft%60)+'</span>';
+    let badges='';
+    if(isFront)badges+='<span class="badge badge-front">FRONT</span>';
+    if(rn.atLunch)badges+='<span class="badge badge-lunch">LUNCH</span>'+lunchCD;
+    if(hasCredit)badges+='<span class="credit-display">+'+Math.ceil(rn.frontCredit/60)+'m</span>';
+    if(rn.type==='evening'&&!rn.atLunch&&!hasCredit)badges+='<span class="badge badge-evening">EVE</span>';
+    const planOpts=LUNCH_PLAN_SLOTS.map(s=>'<option value="'+s+'"'+(rn.lunchSlot===s?' selected':'')+'>'+s+'</option>').join('');
+    const planSel=!rn.atLunch?'<select class="lunch-plan-select'+(rn.lunchSlot?' set':'')+'" onchange="setLunchPlan(roster,'+i+',this.value)"><option value="">Lunch</option>'+planOpts+'</select>':'';
+    let metaText='';
+    if(rn.atLunch)metaText='Lunch since '+(rn.lunchActualTime||'—')+(rn.lunchSlot?' (plan '+rn.lunchSlot+')':'');
+    else if(isFront)metaText='Up front now'+(rn.lunchSlot?' · '+rn.lunchSlot:'');
+    else if(hasCredit)metaText=Math.ceil(rn.frontCredit/60)+'m credit when reached';
+    else metaText='Position '+dispPos+(rn.lunchSlot?' · '+rn.lunchSlot:'');
+    let acts='';
+    if(rn.atLunch){acts='<button class="icon-btn lunch-return" onclick="returnFromLunch(roster['+i+'],false)">↩ Back</button>';}
+    else{acts+='<button class="icon-btn go-lunch" title="Going to lunch" onclick="handleGoLunch_pods('+i+')">🥗</button>';if(!isFront){acts+='<button class="icon-btn to-front" title="Move to front" onclick="moveToFront('+i+')">↑</button>';acts+='<button class="icon-btn to-back" title="Took call out of turn" onclick="handleTookCallBack('+i+')">📞</button>';}acts+='<button class="icon-btn absent" title="Remove" onclick="markAbsent('+i+')">✕</button>';}
+    card.innerHTML='<span class="drag-handle">⠿</span><span class="position-num">'+dispPos+'</span><div class="rn-avatar">'+initials(rn.name)+'</div><div class="rn-info"><div class="rn-name">'+esc(rn.name)+'</div><div class="rn-meta">'+metaText+'</div></div><div class="rn-badges">'+badges+'</div>'+planSel+'<div class="rn-actions">'+acts+'</div>';
+    card.addEventListener('dragstart',e=>{dragSrc=i;e.dataTransfer.effectAllowed='move';});
+    card.addEventListener('dragover',e=>{e.preventDefault();card.classList.add('drag-over');});
+    card.addEventListener('dragleave',()=>card.classList.remove('drag-over'));
+    card.addEventListener('drop',e=>{e.preventDefault();card.classList.remove('drag-over');if(dragSrc!==null&&dragSrc!==i){const moved=roster.splice(dragSrc,1)[0];roster.splice(i,0,moved);addLog(esc(moved.name)+' moved to position '+(i+1)+' (drag)','manual');renderPods();saveState();}dragSrc=null;});
+    listEl.appendChild(card);
+  });
+  container.innerHTML='';container.appendChild(listEl);
+  document.getElementById('rnCount').textContent=active.length+' active / '+roster.length+' total';
+}
+
+function handleGoLunch_pods(idx){const rn=roster[idx];showDialog('Going to Lunch','<strong>'+esc(rn.name)+'</strong> heading to lunch now'+(rn.lunchSlot?' (plan '+rn.lunchSlot+')':'')+'. 30-min countdown starts.',()=>goToLunch(rn));}
+function renderPodsCallBtn(){const front=getFrontRN();document.getElementById('callBtnName').textContent=front?'('+front.name+')':'';document.getElementById('callBtn').disabled=!front;}
+
+function renderLineupSnapshot(){
+  const snap=document.getElementById('lineupSnapshot');
+  const txt=document.getElementById('snapshotText');
+  const active=getActive();
+  if(roster.length===0){snap.style.display='none';return;}
+  snap.style.display='flex';
+  const now=new Date();
+  const minsLeft=Math.ceil(timerSeconds/60);
+  const startMins=timerRunning?(minsLeft<30?30-minsLeft:0):null;
+  const startTime=new Date(now.getTime()-((ROTATION_DURATION-timerSeconds)*1000));
+  const startStr=startTime.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  const parts=[];
+  roster.forEach((rn,i)=>{
+    const isFirst=active[0]===rn&&!rn.atLunch;
+    if(rn.atLunch){parts.push(rn.name+' (lunch)');}
+    else if(isFirst){parts.push(rn.name+' (up front since '+startStr+', '+minsLeft+'m left)');}
+    else{parts.push(rn.name);}
+  });
+  const plain=parts.join(', ');
+  // Render with front name highlighted
+  const htmlParts=parts.map((p,i)=>{
+    const rn=roster[i];const isFirst=active[0]===rn&&!rn.atLunch;
+    return isFirst?'<span class="snap-front">'+esc(p)+'</span>':esc(p);
+  });
+  txt.innerHTML=htmlParts.length?htmlParts.join(', '):'<span class="snapshot-empty">No one in lineup yet.</span>';
+  txt._plain=plain;
+}
+
+function copySnapshot(){
+  const txt=document.getElementById('snapshotText');
+  const text=txt._plain||txt.textContent;
+  navigator.clipboard.writeText(text).then(()=>showToast('Lineup copied'));
+}
+function renderPodsAbsent(){
+  const section=document.getElementById('absentSection'),listEl=document.getElementById('absentList'),label=document.getElementById('absentToggleLabel');
+  if(absentRoster.length===0){section.style.display='none';return;}
+  section.style.display='block';label.textContent='Removed ('+absentRoster.length+')';
+  listEl.innerHTML=absentRoster.map((rn,i)=>'<div class="absent-chip">'+esc(rn.name)+'<button class="absent-restore" onclick="restoreFromAbsent('+i+')">↩ restore</button></div>').join('');
+}
+function checkPodsCoverage(){const active=getActive(),warn=document.getElementById('podsCoverageWarn'),txt=document.getElementById('podsCoverageWarnText');if(roster.length>0&&active.length===0){txt.textContent='No active RNs. All at lunch.';warn.classList.add('visible');}else if(active.length===1){txt.textContent='Only '+active[0].name+' covering.';warn.classList.add('visible');}else warn.classList.remove('visible');}
+
+function parseTimeToMins(t){if(!t)return null;t=t.trim().toLowerCase();const isPM=t.includes('p')&&!t.includes('12');t=t.replace(/[ap]/g,'');let[h,m]=t.includes(':')?t.split(':').map(Number):[parseInt(t),0];if(isNaN(h))return null;if(isPM&&h!==12)h+=12;return h*60+(m||0);}
+
+function getCurrentBlock(){const now=new Date(),nowMins=now.getHours()*60+now.getMinutes();return availBlocks.find(b=>{const s=parseTimeToMins(b.start),e=parseTimeToMins(b.end);return s!==null&&e!==null&&nowMins>=s&&nowMins<e;})||null;}
+
+function startAvailCountdown(){clearInterval(availCountdownInterval);availCountdownInterval=setInterval(()=>{renderAvailHeader();saveState();},60000);renderAvailHeader();}
+
+function renderAvailHeader(){
+  const now=new Date(),nowMins=now.getHours()*60+now.getMinutes();
+  const cur=getCurrentBlock();const nameEl=document.getElementById('availCurrentName'),cdEl=document.getElementById('availCountdown');
+  if(!nameEl||!cdEl)return;
+  if(cur){nameEl.textContent=cur.name;nameEl.className='avail-current-name'+(cur.name==='All Watch'?' all-watch':'');const endMins=parseTimeToMins(cur.end);const remaining=endMins-nowMins;cdEl.textContent=remaining<=0?'ending':remaining+'m left';cdEl.className='avail-countdown'+(remaining<=15?' soon':'');}
+  else{const next=availBlocks.filter(b=>{const s=parseTimeToMins(b.start);return s!==null&&s>nowMins;}).sort((a,b)=>parseTimeToMins(a.start)-parseTimeToMins(b.start))[0];if(next){nameEl.textContent='Next: '+next.name;nameEl.className='avail-current-name';cdEl.textContent='at '+next.start;}else{nameEl.textContent='No active block';nameEl.className='avail-current-name';cdEl.textContent='';}}
+}
+
+function addBlock(){
+  const start=document.getElementById('blockStart').value.trim(),end=document.getElementById('blockEnd').value.trim(),name=document.getElementById('blockName').value.trim();
+  if(!start||!end||!name){showToast('Fill in start, end, and name');return;}
+  if(parseTimeToMins(start)===null||parseTimeToMins(end)===null){showToast('Check time format (e.g. 9a or 10:30a)');return;}
+  availBlocks.push({start,end,name,callCount:0,unavailable:false});
+  availBlocks.sort((a,b)=>parseTimeToMins(a.start)-parseTimeToMins(b.start));
+  if(name!=='All Watch'&&!availLunchRoster.find(r=>r.name.toLowerCase()===name.toLowerCase()))availLunchRoster.push({name,lunchSlot:null,atLunch:false,lunchSecondsLeft:0,lunchActualTime:null,frontCredit:0});
+  addLog('<span class="ev-avail">Block added: '+esc(name)+' '+esc(start)+'–'+esc(end)+'</span>','avail');
+  document.getElementById('blockStart').value='';document.getElementById('blockEnd').value='';document.getElementById('blockName').value='';
+  renderAvail();saveState();showToast(name+' block added');
+}
+
+function removeBlock(idx){const b=availBlocks[idx];showDialog('Remove Block','Remove <strong>'+esc(b.name)+'</strong> ('+esc(b.start)+'–'+esc(b.end)+')?',()=>{availBlocks.splice(idx,1);addLog('<span class="ev-avail">Block removed: '+esc(b.name)+'</span>','avail');renderAvail();saveState();showToast('Block removed');});}
+function incrementCall(idx){availBlocks[idx].callCount++;addLog('<span class="ev-avail">Call logged: <strong>'+esc(availBlocks[idx].name)+'</strong> ('+esc(availBlocks[idx].start)+'–'+esc(availBlocks[idx].end)+'). Total: '+availBlocks[idx].callCount+'</span>','avail');renderAvail();saveState();}
+function decrementCall(idx){if(availBlocks[idx].callCount>0)availBlocks[idx].callCount--;renderAvail();saveState();}
+function toggleUnavail(idx){availBlocks[idx].unavailable=!availBlocks[idx].unavailable;addLog('<span class="ev-avail"><strong>'+esc(availBlocks[idx].name)+'</strong> marked '+(availBlocks[idx].unavailable?'unavailable':'available again')+'</span>','avail');renderAvail();saveState();}
+
+function addCM(){const input=document.getElementById('cmInput'),name=input.value.trim();if(!name)return;if(cmRNs.find(r=>r.toLowerCase()===name.toLowerCase())){showToast('Already listed');return;}cmRNs.push(name);addLog('<strong>'+esc(name)+'</strong> added to CM list','avail');input.value='';renderAvail();saveState();showToast(name+' added to CM');}
+function removeCM(idx){cmRNs.splice(idx,1);renderAvail();saveState();}
+
+function openAvailResetDialog(){showDialog('Reset Available Coverage','Clear all blocks, CM list, and log?',()=>{availBlocks=[{start:'8:00a',end:'9:00a',name:'All Watch',callCount:0,unavailable:false}];cmRNs=[];availLunchRoster=[];log=[];addLog('Available Coverage reset','system');renderAvail();renderLog();saveState();showToast('Reset');});}
+
+function renderAvail(){renderAvailHeader();renderCMList();renderAvailBlocks();renderHandoff();checkAvailCoverage();}
+
+function renderCMList(){const list=document.getElementById('cmList');if(cmRNs.length===0){list.innerHTML='<span class="cm-empty">None assigned</span>';return;}list.innerHTML=cmRNs.map((n,i)=>'<div class="cm-chip">'+esc(n)+'<button class="cm-remove" onclick="removeCM('+i+')" title="Remove">✕</button></div>').join('');}
+
+function renderAvailBlocks(){
+  const list=document.getElementById('availBlockList');
+  if(availBlocks.length===0){list.innerHTML='<div class="empty-state" style="margin:0 0 10px"><div class="empty-state-title">No blocks yet</div><div class="empty-state-sub">Add coverage blocks below.</div></div>';return;}
+  const now=new Date(),nowMins=now.getHours()*60+now.getMinutes();
+  list.innerHTML='';
+  availBlocks.forEach((b,i)=>{
+    const s=parseTimeToMins(b.start),e=parseTimeToMins(b.end);
+    const isActive=s!==null&&e!==null&&nowMins>=s&&nowMins<e,isPast=e!==null&&nowMins>=e,isAllWatch=b.name==='All Watch';
+    let cc='avail-block';if(isActive)cc+=isAllWatch?' all-watch-block active-block':' active-block';if(isPast)cc+=' past-block';if(b.unavailable)cc+=' unavail-block';
+    let badges='';
+    if(isActive)badges+='<span class="badge '+(isAllWatch?'badge-allwatch':'badge-active')+'">'+(isAllWatch?'ALL WATCH':'ACTIVE')+'</span>';
+    if(isPast)badges+='<span class="badge badge-past">DONE</span>';
+    if(b.unavailable)badges+='<span class="badge badge-unavail">UNAVAIL</span>';
+    const lunchRN=availLunchRoster.find(r=>r.name.toLowerCase()===b.name.toLowerCase());
+    let lunchBtn='';
+    if(!isAllWatch&&lunchRN){if(lunchRN.atLunch)lunchBtn='<button class="icon-btn lunch-return" onclick="returnFromLunch(availLunchRoster.find(r=>r.name===\''+b.name.replace(/'/g,"\\'")+'\'),false)">↩</button>';else lunchBtn='<button class="icon-btn go-lunch" title="Going to lunch" onclick="handleGoLunch_avail(\''+b.name.replace(/'/g,"\\'")+'\')">🥗</button>';}
+    let lunchCD='';if(lunchRN&&lunchRN.atLunch&&lunchRN.lunchSecondsLeft>0)lunchCD=' · 🥗 '+pad(Math.floor(lunchRN.lunchSecondsLeft/60))+':'+pad(lunchRN.lunchSecondsLeft%60);
+    const meta=b.unavailable?'Unavailable':(isPast?b.callCount+' call'+(b.callCount!==1?'s':''):(isActive?'Active · '+b.callCount+' call'+(b.callCount!==1?'s':''):'Upcoming'))+lunchCD;
+    const div=document.createElement('div');div.className=cc;
+    div.innerHTML=
+      '<div class="avail-block-time">'+esc(b.start)+'–'+esc(b.end)+'</div>'+
+      '<div class="avail-block-avatar">'+initials(b.name)+'</div>'+
+      '<div class="avail-block-info"><div class="avail-block-name">'+esc(b.name)+'</div><div class="avail-block-meta">'+meta+'</div></div>'+
+      '<div class="avail-block-badges">'+badges+'</div>'+
+      (!isAllWatch&&!isPast?'<div style="display:flex;flex-direction:column;align-items:center;gap:2px"><button class="call-count-btn" onclick="incrementCall('+i+')" title="Log a call">+</button><span class="call-count-label">'+b.callCount+' calls</span>'+(b.callCount>0?'<button style="background:none;border:none;color:#c4bdb0;font-size:9px;cursor:pointer;font-weight:600" onclick="decrementCall('+i+')">undo</button>':'')+'</div>':'<div style="min-width:52px;text-align:center"><span style="font-size:14px;font-weight:800;color:#1a1a1a">'+b.callCount+'</span><br><span class="call-count-label">calls</span></div>')+
+      (!isAllWatch?'<div class="avail-block-actions">'+lunchBtn+'<button class="icon-btn '+(b.unavailable?'to-front':'to-back')+'" title="'+(b.unavailable?'Mark available':'Mark unavailable')+'" onclick="toggleUnavail('+i+')">'+(b.unavailable?'✓':'⚠')+'</button><button class="icon-btn absent" title="Remove block" onclick="removeBlock('+i+')">✕</button></div>':'<div class="avail-block-actions"></div>');
+    list.appendChild(div);
+  });
+}
+
+function handleGoLunch_avail(name){const rn=availLunchRoster.find(r=>r.name===name);if(!rn)return;showDialog('Going to Lunch','<strong>'+esc(name)+'</strong> heading to lunch now. 30-min countdown starts.',()=>goToLunch(rn));}
+
+function renderHandoff(){
+  const preview=document.getElementById('handoffPreview');
+  const completed=availBlocks.filter(b=>{const e=parseTimeToMins(b.end);return e!==null&&new Date().getHours()*60+new Date().getMinutes()>=e;});
+  if(completed.length===0){preview.textContent='No completed blocks yet.';return;}
+  preview.textContent=completed.map(b=>b.callCount+' call'+(b.callCount!==1?'s':'')+' '+b.start+'–'+b.end+(b.name!=='All Watch'?' ('+b.name+')':'')).join('\n');
+}
+
+function copyHandoff(){const text=document.getElementById('handoffPreview').textContent;if(text==='No completed blocks yet.'){showToast('No completed blocks yet');return;}navigator.clipboard.writeText(text).then(()=>showToast('Handoff message copied'));}
+function checkAvailCoverage(){const cur=getCurrentBlock(),warn=document.getElementById('availCoverageWarn'),txt=document.getElementById('availCoverageWarnText');if(cur&&cur.unavailable){txt.textContent=cur.name+' is unavailable. No active coverage.';warn.classList.add('visible');}else warn.classList.remove('visible');}
+
+function addLog(event,type){const now=new Date();log.unshift({time:now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}),event,type});if(log.length>150)log.pop();renderLog();}
+function renderLog(){const list=document.getElementById('logList');if(!log.length){list.innerHTML='<div class="log-empty">No activity yet.</div>';return;}list.innerHTML=log.map(e=>'<div class="log-entry"><span class="log-time">'+e.time+'</span><span class="log-event">'+e.event+'</span></div>').join('');}
+function copyLog(){const text=log.map(e=>'['+e.time+'] '+e.event.replace(/<[^>]+>/g,'')).join('\n');navigator.clipboard.writeText(text).then(()=>showToast('Log copied'));}
+
+function showDialog(title,body,onConfirm){document.getElementById('dialogTitle').textContent=title;document.getElementById('dialogBody').innerHTML=body;document.getElementById('dialogConfirm').onclick=()=>{closeDialog();onConfirm();};document.getElementById('overlay').classList.add('active');}
+function closeDialog(){document.getElementById('overlay').classList.remove('active');}
+document.getElementById('overlay').addEventListener('click',e=>{if(e.target===document.getElementById('overlay'))closeDialog();});
+
+let toastTimer=null;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2500);}
+function saveState(){sessionStorage.setItem(STORAGE_KEY,JSON.stringify({mode,roster,absentRoster,timerSeconds,availBlocks,cmRNs,availLunchRoster,log}));}
+function pad(n){return String(n).padStart(2,'0');}
+function initials(name){return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+init();
+</script>
+
+</body>
+</html>
