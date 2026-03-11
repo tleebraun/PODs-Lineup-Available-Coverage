@@ -278,6 +278,26 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 .add-cm-btn { background-color:#f3ede4; border:1px solid #e0d8cc; color:#8a8070; font-size:12px; font-weight:800; padding:8px 14px; border-radius:8px; cursor:pointer; }
 .add-cm-btn:hover { border-color:#8a8070; color:#1a1a1a; }
 
+/* Daily info grid */
+.daily-info-grid { display:flex; flex-direction:column; gap:6px; }
+.daily-info-row { display:flex; align-items:center; gap:10px; }
+.daily-info-row label { font-size:10px; font-weight:700; color:#8a8070; text-transform:uppercase; letter-spacing:0.1em; min-width:90px; flex-shrink:0; }
+.daily-info-input { flex:1; background-color:#f9f6f1; border:1px solid #e0d8cc; border-radius:6px; padding:7px 10px; color:#1a1a1a; font-size:13px; outline:none; font-weight:600; }
+.daily-info-input:focus { border-color:#1a7a6e; background-color:#fff; }
+
+/* PTO chips */
+.pto-chip { background-color:#f3ede4; border:1px solid #e0d8cc; border-radius:20px; padding:5px 12px; font-size:12px; color:#4a4a4a; display:flex; align-items:center; gap:6px; }
+.pto-status { font-size:9px; font-weight:800; padding:2px 6px; border-radius:10px; text-transform:uppercase; }
+.pto-status.PTO { background-color:rgba(26,95,138,0.1); color:#1a5f8a; }
+.pto-status.Flex { background-color:rgba(26,122,110,0.1); color:#1a7a6e; }
+.pto-status.LOA { background-color:rgba(184,125,26,0.1); color:#b87d1a; }
+.pto-status.Out { background-color:rgba(192,57,43,0.1); color:#c0392b; }
+.pto-status.Apt { background-color:rgba(122,63,160,0.1); color:#7a3fa0; }
+
+/* Precepting chips */
+.precept-chip { background-color:#f3ede4; border:1px solid #e0d8cc; border-radius:20px; padding:5px 12px; font-size:12px; color:#4a4a4a; display:flex; align-items:center; gap:6px; }
+.precept-arrow { color:#8a8070; font-weight:700; }
+
 .handoff-section { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:12px; padding:14px 16px; margin-bottom:14px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
 .handoff-preview { font-size:12px; color:#4a4a4a; background-color:#f9f6f1; border-radius:8px; padding:10px 12px; margin-top:8px; font-family:monospace; line-height:1.6; white-space:pre-wrap; border:1px solid #e0d8cc; }
 .copy-handoff-btn { margin-top:10px; background-color:rgba(26,95,138,0.1); border:1px solid rgba(26,95,138,0.3); color:#1a5f8a; font-size:11px; font-weight:700; padding:7px 14px; border-radius:8px; cursor:pointer; }
@@ -340,7 +360,7 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
   <div class="setup-section-title"><span class="setup-section-num">1</span> Create a free Firebase project</div>
   <div class="setup-instructions">
     <ol>
-      <li>Go to <a href="https://urldefense.com/v3/__https://console.firebase.google.com__;!!IZ3lH8c!wUYxvpUt1RDaTPOANDNYidVAl8oC43hw7LnSw6e6T9rEwkZksnkSSTZiBKFu9cnv8_swCH21RckvIUE$" target="_blank">console.firebase.google.com</a></li>
+      <li>Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a></li>
       <li>Click <code>Add project</code> → name it (e.g. <code>ccmu1-lineup</code>) → continue through defaults</li>
       <li>In the left sidebar: <code>Build → Realtime Database → Create database</code></li>
       <li>Choose <code>Start in test mode</code> → enable</li>
@@ -362,7 +382,7 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
   </div>
   <div class="setup-field">
     <label>Database URL</label>
-    <input class="setup-input" id="cfg_databaseURL" placeholder="https://urldefense.com/v3/__https://your-project-default-rtdb.firebaseio.com__;!!IZ3lH8c!wUYxvpUt1RDaTPOANDNYidVAl8oC43hw7LnSw6e6T9rEwkZksnkSSTZiBKFu9cnv8_swCH21capSxJY$">
+    <input class="setup-input" id="cfg_databaseURL" placeholder="https://your-project-default-rtdb.firebaseio.com">
   </div>
   <div class="setup-field">
     <label>Project ID</label>
@@ -496,41 +516,94 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 
   <div id="availScreen" style="display:none">
     <div class="coverage-warn" id="availCoverageWarn">⚠️ <span id="availCoverageWarnText"></span></div>
-    <div class="avail-header-bar">
-      <span class="avail-current-label">Now covering</span>
-      <span class="avail-current-name" id="availCurrentName">—</span>
-      <span class="avail-countdown" id="availCountdown"></span>
+
+```
+<!-- Now Covering -->
+<div class="avail-header-bar">
+  <span class="avail-current-label">Now covering</span>
+  <span class="avail-current-name" id="availCurrentName">—</span>
+  <span class="avail-countdown" id="availCountdown"></span>
+</div>
+
+<!-- Daily Info -->
+<div class="cm-section">
+  <span class="section-label" style="margin-bottom:8px">Daily Info</span>
+  <div class="daily-info-grid" id="dailyInfoGrid">
+    <div class="daily-info-row"><label>MSL</label><input class="daily-info-input" id="di_msl" placeholder="—" onchange="saveDailyInfo()"></div>
+    <div class="daily-info-row"><label>Fingerprints</label><input class="daily-info-input" id="di_fingerprints" placeholder="—" onchange="saveDailyInfo()"></div>
+    <div class="daily-info-row"><label>Apt Time</label><input class="daily-info-input" id="di_apt" placeholder="—" onchange="saveDailyInfo()"></div>
+    <div class="daily-info-row"><label>Meetings</label><input class="daily-info-input" id="di_meetings" placeholder="—" onchange="saveDailyInfo()"></div>
+    <div class="daily-info-row"><label>Other</label><input class="daily-info-input" id="di_other" placeholder="—" onchange="saveDailyInfo()"></div>
+  </div>
+</div>
+
+<!-- PTO / Flex / Out -->
+<div class="cm-section">
+  <span class="section-label" style="margin-bottom:6px">PTO / Flex / Out</span>
+  <div class="cm-list" id="ptoList"><span class="cm-empty">None</span></div>
+  <div class="add-cm-row" style="flex-wrap:wrap;gap:6px">
+    <input class="add-cm-input" id="ptoName" placeholder="RN name..." maxlength="32" style="flex:2;min-width:100px">
+    <select class="add-type-select" id="ptoStatus" style="flex:1;min-width:80px">
+      <option value="PTO">PTO</option>
+      <option value="Flex">Flex</option>
+      <option value="LOA">LOA</option>
+      <option value="Out">Out</option>
+      <option value="Apt">Apt</option>
+    </select>
+    <input class="add-cm-input" id="ptoNote" placeholder="Note (optional)" maxlength="32" style="flex:2;min-width:100px">
+    <button class="add-cm-btn" onclick="addPTO()">Add</button>
+  </div>
+</div>
+
+<!-- Precepting -->
+<div class="cm-section">
+  <span class="section-label" style="margin-bottom:6px">Precepting</span>
+  <div class="cm-list" id="preceptList"><span class="cm-empty">None</span></div>
+  <div class="add-cm-row">
+    <input class="add-cm-input" id="preceptor" placeholder="Preceptor..." maxlength="32" style="flex:1">
+    <span style="color:#8a8070;font-size:12px;font-weight:700;flex-shrink:0;align-self:center">→</span>
+    <input class="add-cm-input" id="preceptee" placeholder="Orientee..." maxlength="32" style="flex:1">
+    <button class="add-cm-btn" onclick="addPrecepting()">Add</button>
+  </div>
+</div>
+
+<!-- Case Management -->
+<div class="cm-section">
+  <span class="section-label" style="margin-bottom:6px">Case Management Today</span>
+  <div class="cm-list" id="cmList"><span class="cm-empty">None assigned</span></div>
+  <div class="add-cm-row">
+    <input class="add-cm-input" id="cmInput" placeholder="Add CM RN name..." maxlength="32" onkeydown="if(event.key==='Enter') addCM()">
+    <button class="add-cm-btn" onclick="addCM()">Add</button>
+  </div>
+</div>
+
+<!-- Coverage Schedule -->
+<div class="avail-blocks-section">
+  <div class="lineup-header">
+    <span class="section-label" style="margin:0">Coverage Schedule</span>
+    <button class="sec-btn" style="padding:5px 12px;font-size:10px" onclick="openAvailResetDialog()">⟲ Reset</button>
+  </div>
+  <div class="avail-block-list" id="availBlockList"></div>
+  <div class="add-block-section">
+    <span class="section-label" style="margin-bottom:8px">Add Coverage Block</span>
+    <div class="add-block-row">
+      <input class="block-time-input" id="blockStart" placeholder="9a" maxlength="8">
+      <span style="color:#8a8070;font-size:12px;font-weight:700;flex-shrink:0">to</span>
+      <input class="block-time-input" id="blockEnd" placeholder="10a" maxlength="8">
+      <input class="block-name-input" id="blockName" placeholder="RN name or All Watch" maxlength="32" onkeydown="if(event.key==='Enter') addBlock()">
+      <button class="add-block-btn" onclick="addBlock()">Add</button>
     </div>
-    <div class="cm-section">
-      <span class="section-label" style="margin-bottom:6px">Case Management Today</span>
-      <div class="cm-list" id="cmList"><span class="cm-empty">None assigned</span></div>
-      <div class="add-cm-row">
-        <input class="add-cm-input" id="cmInput" placeholder="Add CM RN name..." maxlength="32" onkeydown="if(event.key==='Enter') addCM()">
-        <button class="add-cm-btn" onclick="addCM()">Add</button>
-      </div>
-    </div>
-    <div class="avail-blocks-section">
-      <div class="lineup-header">
-        <span class="section-label" style="margin:0">Coverage Schedule</span>
-        <button class="sec-btn" style="padding:5px 12px;font-size:10px" onclick="openAvailResetDialog()">⟲ Reset</button>
-      </div>
-      <div class="avail-block-list" id="availBlockList"></div>
-      <div class="add-block-section">
-        <span class="section-label" style="margin-bottom:8px">Add Coverage Block</span>
-        <div class="add-block-row">
-          <input class="block-time-input" id="blockStart" placeholder="9a" maxlength="8">
-          <span style="color:#8a8070;font-size:12px;font-weight:700;flex-shrink:0">to</span>
-          <input class="block-time-input" id="blockEnd" placeholder="10a" maxlength="8">
-          <input class="block-name-input" id="blockName" placeholder="RN name or All Watch" maxlength="32" onkeydown="if(event.key==='Enter') addBlock()">
-          <button class="add-block-btn" onclick="addBlock()">Add</button>
-        </div>
-      </div>
-    </div>
-    <div class="handoff-section">
-      <span class="section-label" style="margin-bottom:4px">Handoff Message</span>
-      <div class="handoff-preview" id="handoffPreview">No completed blocks yet.</div>
-      <button class="copy-handoff-btn" onclick="copyHandoff()">Copy handoff message</button>
-    </div>
+  </div>
+</div>
+
+<!-- Handoff -->
+<div class="handoff-section">
+  <span class="section-label" style="margin-bottom:4px">Handoff Message</span>
+  <div class="handoff-preview" id="handoffPreview">No data yet.</div>
+  <button class="copy-handoff-btn" onclick="copyHandoff()">Copy handoff message</button>
+</div>
+```
+
   </div>
 
   <div class="log-section" id="logSection" style="display:none">
@@ -556,9 +629,9 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 
 <!-- Firebase SDK (compat — globally scoped, no module needed) -->
 
-<script src="https://urldefense.com/v3/__https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js__;!!IZ3lH8c!wUYxvpUt1RDaTPOANDNYidVAl8oC43hw7LnSw6e6T9rEwkZksnkSSTZiBKFu9cnv8_swCH21aVdtxQg$"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 
-<script src="https://urldefense.com/v3/__https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js__;!!IZ3lH8c!wUYxvpUt1RDaTPOANDNYidVAl8oC43hw7LnSw6e6T9rEwkZksnkSSTZiBKFu9cnv8_swCH21RXfDCUg$"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
 <script>
 
@@ -572,6 +645,7 @@ const CFG_KEY='pods_firebase_cfg';
 let mode=null,roster=[],absentRoster=[],timerSeconds=ROTATION_DURATION,timerRunning=true;
 let timerInterval=null,lunchInterval=null,dragSrc=null,absentOpen=false;
 let availBlocks=[],cmRNs=[],availLunchRoster=[],log=[];
+let ptoList=[],preceptingList=[],dailyInfo={msl:'',fingerprints:'',apt:'',meetings:'',other:''};
 let availCountdownInterval=null,clockInterval=null;
 
 // Firebase state
@@ -681,6 +755,9 @@ function applyRemoteState(data){
   availBlocks=data.availBlocks||[];
   cmRNs=data.cmRNs||[];
   availLunchRoster=data.availLunchRoster||[];
+  ptoList=data.ptoList||[];
+  preceptingList=data.preceptingList||[];
+  dailyInfo=data.dailyInfo||{msl:'',fingerprints:'',apt:'',meetings:'',other:''};
   log=data.log||[];
   renderMode();
   document.getElementById('timerToggle').textContent=timerRunning?'Pause':'Resume';
@@ -688,7 +765,7 @@ function applyRemoteState(data){
 
 // ─── Persistence ─────────────────────────────────────────────────────────────
 function saveState(){
-  const state={mode,roster,absentRoster,timerSeconds,timerRunning,availBlocks,cmRNs,availLunchRoster,log,_ts:Date.now()};
+  const state={mode,roster,absentRoster,timerSeconds,timerRunning,availBlocks,cmRNs,availLunchRoster,ptoList,preceptingList,dailyInfo,log,_ts:Date.now()};
   // Always save locally as fallback
   try { sessionStorage.setItem('pods_local',JSON.stringify(state)); } catch{}
   if(syncEnabled&&db&&dbRef){
@@ -737,11 +814,11 @@ async function init(){
 function loadLocal(){
   try{
     const saved=sessionStorage.getItem('pods_local');
-    if(saved){const s=JSON.parse(saved);mode=s.mode||null;roster=s.roster||[];absentRoster=s.absentRoster||[];timerSeconds=s.timerSeconds||ROTATION_DURATION;timerRunning=s.timerRunning!==undefined?s.timerRunning:true;availBlocks=s.availBlocks||[];cmRNs=s.cmRNs||[];availLunchRoster=s.availLunchRoster||[];log=s.log||[];}
+    if(saved){const s=JSON.parse(saved);mode=s.mode||null;roster=s.roster||[];absentRoster=s.absentRoster||[];timerSeconds=s.timerSeconds||ROTATION_DURATION;timerRunning=s.timerRunning!==undefined?s.timerRunning:true;availBlocks=s.availBlocks||[];cmRNs=s.cmRNs||[];availLunchRoster=s.availLunchRoster||[];ptoList=s.ptoList||[];preceptingList=s.preceptingList||[];dailyInfo=s.dailyInfo||{msl:'',fingerprints:'',apt:'',meetings:'',other:''};log=s.log||[];}
   } catch{}
 }
 
-function fullReset(){mode=null;roster=[];absentRoster=[];timerSeconds=ROTATION_DURATION;availBlocks=[];cmRNs=[];availLunchRoster=[];log=[];}
+function fullReset(){mode=null;roster=[];absentRoster=[];timerSeconds=ROTATION_DURATION;availBlocks=[];cmRNs=[];availLunchRoster=[];ptoList=[];preceptingList=[];dailyInfo={msl:'',fingerprints:'',apt:'',meetings:'',other:''};log=[];}
 
 // ─── Mode ─────────────────────────────────────────────────────────────────────
 window.setMode=function(m){
@@ -980,6 +1057,68 @@ function renderAvailHeader(){
   else{const next=availBlocks.filter(b=>{const s=parseTimeToMins(b.start);return s!==null&&s>nowMins;}).sort((a,b)=>parseTimeToMins(a.start)-parseTimeToMins(b.start))[0];if(next){nameEl.textContent='Next: '+next.name;nameEl.className='avail-current-name';cdEl.textContent='at '+next.start;}else{nameEl.textContent='No active block';nameEl.className='avail-current-name';cdEl.textContent='';}}
 }
 
+// ─── Daily Info ───────────────────────────────────────────────────────────────
+window.saveDailyInfo=function(){
+  dailyInfo={
+    msl:document.getElementById('di_msl').value.trim(),
+    fingerprints:document.getElementById('di_fingerprints').value.trim(),
+    apt:document.getElementById('di_apt').value.trim(),
+    meetings:document.getElementById('di_meetings').value.trim(),
+    other:document.getElementById('di_other').value.trim()
+  };
+  saveState();
+};
+
+function renderDailyInfo(){
+  if(!dailyInfo)return;
+  const fields=['msl','fingerprints','apt','meetings','other'];
+  fields.forEach(f=>{const el=document.getElementById('di_'+f);if(el&&dailyInfo[f]!==undefined)el.value=dailyInfo[f];});
+}
+
+// ─── PTO / Flex / Out ─────────────────────────────────────────────────────────
+window.addPTO=function(){
+  const name=document.getElementById('ptoName').value.trim();
+  const status=document.getElementById('ptoStatus').value;
+  const note=document.getElementById('ptoNote').value.trim();
+  if(!name){showToast('Enter a name');return;}
+  ptoList.push({name,status,note});
+  addLog('<strong>'+esc(name)+'</strong> added as '+status,'avail');
+  document.getElementById('ptoName').value='';
+  document.getElementById('ptoNote').value='';
+  renderAvail();saveState();showToast(name+' added');
+};
+window.removePTO=function(idx){ptoList.splice(idx,1);renderAvail();saveState();};
+
+function renderPTOList(){
+  const el=document.getElementById('ptoList');
+  if(!ptoList.length){el.innerHTML='<span class="cm-empty">None</span>';return;}
+  el.innerHTML=ptoList.map((p,i)=>
+    '<div class="pto-chip"><span class="pto-status '+p.status+'">'+p.status+'</span>'+esc(p.name)+(p.note?' · <em style="color:#8a8070">'+esc(p.note)+'</em>':'')+'<button class="cm-remove" onclick="removePTO('+i+')" title="Remove">✕</button></div>'
+  ).join('');
+}
+
+// ─── Precepting ───────────────────────────────────────────────────────────────
+window.addPrecepting=function(){
+  const preceptor=document.getElementById('preceptor').value.trim();
+  const preceptee=document.getElementById('preceptee').value.trim();
+  if(!preceptor||!preceptee){showToast('Enter both names');return;}
+  preceptingList.push({preceptor,preceptee});
+  addLog('<strong>'+esc(preceptor)+'</strong> precepting <strong>'+esc(preceptee)+'</strong>','avail');
+  document.getElementById('preceptor').value='';
+  document.getElementById('preceptee').value='';
+  renderAvail();saveState();showToast('Pair added');
+};
+window.removePrecepting=function(idx){preceptingList.splice(idx,1);renderAvail();saveState();};
+
+function renderPreceptList(){
+  const el=document.getElementById('preceptList');
+  if(!preceptingList.length){el.innerHTML='<span class="cm-empty">None</span>';return;}
+  el.innerHTML=preceptingList.map((p,i)=>
+    '<div class="precept-chip">'+esc(p.preceptor)+'<span class="precept-arrow">→</span>'+esc(p.preceptee)+'<button class="cm-remove" onclick="removePrecepting('+i+')" title="Remove">✕</button></div>'
+  ).join('');
+}
+
+// ─── Coverage blocks ──────────────────────────────────────────────────────────
 window.addBlock=function(){
   const start=document.getElementById('blockStart').value.trim(),end=document.getElementById('blockEnd').value.trim(),name=document.getElementById('blockName').value.trim();
   if(!start||!end||!name){showToast('Fill in start, end, and name');return;}
@@ -999,9 +1138,9 @@ window.toggleUnavail=function(idx){availBlocks[idx].unavailable=!availBlocks[idx
 
 window.addCM=function(){const input=document.getElementById('cmInput'),name=input.value.trim();if(!name)return;if(cmRNs.find(r=>r.toLowerCase()===name.toLowerCase())){showToast('Already listed');return;}cmRNs.push(name);addLog('<strong>'+esc(name)+'</strong> added to CM list','avail');input.value='';renderAvail();saveState();showToast(name+' added to CM');};
 window.removeCM=function(idx){cmRNs.splice(idx,1);renderAvail();saveState();};
-window.openAvailResetDialog=function(){showDialog('Reset Available Coverage','Clear all blocks, CM list, and log?',()=>{availBlocks=[{start:'8:00a',end:'9:00a',name:'All Watch',callCount:0,unavailable:false}];cmRNs=[];availLunchRoster=[];log=[];addLog('Available Coverage reset','system');renderAvail();renderLog();saveState();showToast('Reset');});};
+window.openAvailResetDialog=function(){showDialog('Reset Available Coverage','Clear all blocks, CM list, and daily info?',()=>{availBlocks=[{start:'8:00a',end:'9:00a',name:'All Watch',callCount:0,unavailable:false}];cmRNs=[];availLunchRoster=[];ptoList=[];preceptingList=[];dailyInfo={msl:'',fingerprints:'',apt:'',meetings:'',other:''};log=[];addLog('Available Coverage reset','system');renderAvail();renderLog();saveState();showToast('Reset');});};
 
-function renderAvail(){renderAvailHeader();renderCMList();renderAvailBlocks();renderHandoff();checkAvailCoverage();}
+function renderAvail(){renderAvailHeader();renderDailyInfo();renderPTOList();renderPreceptList();renderCMList();renderAvailBlocks();renderHandoff();checkAvailCoverage();}
 function renderCMList(){const list=document.getElementById('cmList');if(cmRNs.length===0){list.innerHTML='<span class="cm-empty">None assigned</span>';return;}list.innerHTML=cmRNs.map((n,i)=>'<div class="cm-chip">'+esc(n)+'<button class="cm-remove" onclick="removeCM('+i+')" title="Remove">✕</button></div>').join('');}
 
 function renderAvailBlocks(){
@@ -1019,7 +1158,7 @@ function renderAvailBlocks(){
     if(b.unavailable)badges+='<span class="badge badge-unavail">UNAVAIL</span>';
     const lunchRN=availLunchRoster.find(r=>r.name.toLowerCase()===b.name.toLowerCase());
     let lunchBtn='';
-    if(!isAllWatch&&lunchRN){const safeName=b.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");if(lunchRN.atLunch)lunchBtn='<button class="icon-btn lunch-return" onclick="availReturnFromLunch(\''+safeName+'\')">↩</button>';else lunchBtn='<button class="icon-btn go-lunch" title="Going to lunch" onclick="handleGoLunch_avail(\''+safeName+'\')">🥗</button>';}
+    if(!isAllWatch&&lunchRN){const safeName=b.name.replace(/\/g,'\\').replace(/'/g,"\'");if(lunchRN.atLunch)lunchBtn='<button class="icon-btn lunch-return" onclick="availReturnFromLunch(''+safeName+'')">↩</button>';else lunchBtn='<button class="icon-btn go-lunch" title="Going to lunch" onclick="handleGoLunch_avail(''+safeName+'')">🥗</button>';}
     let lunchCD='';if(lunchRN&&lunchRN.atLunch&&lunchRN.lunchSecondsLeft>0)lunchCD=' · 🥗 '+pad(Math.floor(lunchRN.lunchSecondsLeft/60))+':'+pad(lunchRN.lunchSecondsLeft%60);
     const meta=b.unavailable?'Unavailable':(isPast?b.callCount+' call'+(b.callCount!==1?'s':''):(isActive?'Active · '+b.callCount+' call'+(b.callCount!==1?'s':''):'Upcoming'))+lunchCD;
     const div=document.createElement('div');div.className=cc;
@@ -1039,12 +1178,30 @@ window.handleGoLunch_avail=function(name){const rn=availLunchRoster.find(r=>r.na
 
 function renderHandoff(){
   const preview=document.getElementById('handoffPreview');
+  const lines=[];
+  // Daily info
+  if(dailyInfo){
+    if(dailyInfo.msl)lines.push('MSL: '+dailyInfo.msl);
+    if(dailyInfo.fingerprints)lines.push('Fingerprints: '+dailyInfo.fingerprints);
+    if(dailyInfo.apt)lines.push('Apt Time: '+dailyInfo.apt);
+    if(dailyInfo.meetings)lines.push('Meetings: '+dailyInfo.meetings);
+    if(dailyInfo.other)lines.push('Other: '+dailyInfo.other);
+    if(lines.length)lines.push('');
+  }
+  // PTO
+  if(ptoList.length){lines.push('PTO/Flex/Out:');ptoList.forEach(p=>lines.push('  '+p.status+': '+p.name+(p.note?' ('+p.note+')':'')));lines.push('');}
+  // Precepting
+  if(preceptingList.length){lines.push('Precepting:');preceptingList.forEach(p=>lines.push('  '+p.preceptor+' → '+p.preceptee));lines.push('');}
+  // CM
+  if(cmRNs.length){lines.push('CM: '+cmRNs.join(', '));lines.push('');}
+  // Coverage
   const completed=availBlocks.filter(b=>{const e=parseTimeToMins(b.end);return e!==null&&new Date().getHours()*60+new Date().getMinutes()>=e;});
-  if(completed.length===0){preview.textContent='No completed blocks yet.';return;}
-  preview.textContent=completed.map(b=>b.callCount+' call'+(b.callCount!==1?'s':'')+' '+b.start+'–'+b.end+(b.name!=='All Watch'?' ('+b.name+')':'')).join('\n');
+  if(completed.length){lines.push('Coverage:');completed.forEach(b=>lines.push('  '+b.start+'–'+b.end+' '+b.name+' ('+b.callCount+' call'+(b.callCount!==1?'s':'')+')'));}
+  if(!lines.length){preview.textContent='No data yet.';return;}
+  preview.textContent=lines.join('\n');
 }
 
-window.copyHandoff=function(){const text=document.getElementById('handoffPreview').textContent;if(text==='No completed blocks yet.'){showToast('No completed blocks yet');return;}navigator.clipboard.writeText(text).then(()=>showToast('Handoff message copied'));};
+window.copyHandoff=function(){const text=document.getElementById('handoffPreview').textContent;if(text==='No data yet.'){showToast('Nothing to copy yet');return;}navigator.clipboard.writeText(text).then(()=>showToast('Handoff message copied'));};
 function checkAvailCoverage(){const cur=getCurrentBlock(),warn=document.getElementById('availCoverageWarn'),txt=document.getElementById('availCoverageWarnText');if(cur&&cur.unavailable){txt.textContent=cur.name+' is unavailable. No active coverage.';warn.classList.add('visible');}else warn.classList.remove('visible');}
 
 // ─── Log ──────────────────────────────────────────────────────────────────────
