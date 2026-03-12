@@ -278,6 +278,19 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 .add-cm-btn { background-color:#f3ede4; border:1px solid #e0d8cc; color:#8a8070; font-size:12px; font-weight:800; padding:8px 14px; border-radius:8px; cursor:pointer; }
 .add-cm-btn:hover { border-color:#8a8070; color:#1a1a1a; }
 
+/* Daily Assignment Panel */
+.daily-assign-section { margin-bottom:14px; border:1px solid #e0d8cc; border-radius:12px; overflow:hidden; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
+.daily-assign-toggle { width:100%; background:none; border:none; padding:12px 16px; display:flex; align-items:center; gap:8px; cursor:pointer; font-size:11px; font-weight:800; color:#4a4a4a; text-transform:uppercase; letter-spacing:0.08em; text-align:left; }
+.daily-assign-toggle:hover { background:#f9f6f1; }
+.daily-assign-body { padding:0 14px 14px; }
+.da-col { display:flex; flex-direction:column; gap:12px; }
+.da-block { background:#f9f6f1; border-radius:8px; padding:10px 12px; }
+.da-block-title { font-size:10px; font-weight:800; color:#8a8070; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px; }
+.da-list { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; min-height:24px; }
+.da-add-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.da-input { flex:1; min-width:80px; background:#fff; border:1px solid #e0d8cc; border-radius:6px; padding:6px 10px; color:#1a1a1a; font-size:12px; font-weight:600; outline:none; }
+.da-input:focus { border-color:#1a7a6e; }
+
 /* Daily info grid */
 .daily-info-grid { display:flex; flex-direction:column; gap:6px; }
 .daily-info-row { display:flex; align-items:center; gap:10px; }
@@ -462,7 +475,7 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
   <div id="podsScreen" style="display:none">
     <div class="coverage-warn" id="podsCoverageWarn">⚠️ <span id="podsCoverageWarnText"></span></div>
     <div class="timer-section">
-      <span class="timer-label">Auto-rotate</span>
+      <span class="timer-label" id="timerLabel">Auto-rotate</span>
       <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
       <div class="timer-display" id="timerDisplay">30:00</div>
       <button class="timer-btn" id="timerToggle">Pause</button>
@@ -494,7 +507,6 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
     </button>
     <div class="secondary-actions">
       <button class="sec-btn" onclick="manualRotate()">↻ Rotate</button>
-      <button class="sec-btn" onclick="openAddEveningHint()">🌙 Evening RN</button>
       <button class="sec-btn" onclick="openPodsResetDialog()">⟲ Reset</button>
     </div>
     <div class="add-section">
@@ -505,13 +517,64 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
       </select>
       <button class="add-btn" onclick="addRN()">Join</button>
     </div>
-    <div class="share-lineup-section" id="shareLineupSection" style="display:none">
-      <div class="share-lineup-header">
-        <span class="section-label" style="margin:0">Share Lineup</span>
-        <button class="copy-log-btn" onclick="copyLineup()">Copy</button>
+
+```
+<!-- Daily Assignment Panel -->
+<div class="daily-assign-section" id="dailyAssignSection">
+  <button class="daily-assign-toggle" onclick="toggleDailyAssign()">
+    <span id="dailyAssignIcon">▸</span>
+    <span>Daily Assignment</span>
+  </button>
+  <div class="daily-assign-body" id="dailyAssignBody" style="display:none">
+    <div class="da-col">
+      <div class="da-block">
+        <div class="da-block-title">PTO / Flex / CM Coverage</div>
+        <div class="da-list" id="daPTOList"><span class="cm-empty">None</span></div>
+        <div class="da-add-row">
+          <input class="da-input" id="daPTOName" placeholder="Name..." maxlength="32">
+          <select class="add-type-select" id="daPTOStatus">
+            <option value="PTO">PTO</option>
+            <option value="Flex">Flex</option>
+            <option value="LOA">LOA</option>
+            <option value="Out">Out</option>
+            <option value="CM">CM</option>
+          </select>
+          <input class="da-input" id="daPTONote" placeholder="Note..." maxlength="32" style="flex:2">
+          <button class="add-cm-btn" onclick="addDAPTO()">Add</button>
+        </div>
       </div>
-      <div class="share-lineup-preview" id="shareLineupPreview"></div>
+      <div class="da-block">
+        <div class="da-block-title">Away / Unavailable Time</div>
+        <div class="da-list" id="daAwayList"><span class="cm-empty">None</span></div>
+        <div class="da-add-row">
+          <input class="da-input" id="daAwayName" placeholder="Name..." maxlength="32">
+          <select class="add-type-select" id="daAwayReason">
+            <option value="Apt">Apt</option>
+            <option value="MSL">MSL</option>
+            <option value="Fingerprints">Fingerprints</option>
+            <option value="Meeting">Meeting</option>
+            <option value="CCR">CCR</option>
+            <option value="Other">Other</option>
+          </select>
+          <input class="da-input" id="daAwayTime" placeholder="Time (e.g. 9a)" maxlength="16" style="flex:1">
+          <button class="add-cm-btn" onclick="addDAAway()">Add</button>
+        </div>
+      </div>
+      <div class="da-block">
+        <div class="da-block-title">Precepting</div>
+        <div class="da-list" id="daPreceptList"><span class="cm-empty">None</span></div>
+        <div class="da-add-row">
+          <input class="da-input" id="daPreceptor" placeholder="Preceptor..." maxlength="32">
+          <span style="color:#8a8070;font-size:12px;font-weight:700;flex-shrink:0;align-self:center">→</span>
+          <input class="da-input" id="daPreceptee" placeholder="Orientee..." maxlength="32">
+          <button class="add-cm-btn" onclick="addDAPrecept()">Add</button>
+        </div>
+      </div>
     </div>
+  </div>
+</div>
+```
+
   </div>
 
   <div id="availScreen" style="display:none">
@@ -642,10 +705,12 @@ const LUNCH_DURATION=30*60,ROTATION_DURATION=30*60,CREDIT_MINIMUM=5*60;
 const CFG_KEY='pods_firebase_cfg';
 
 // ─── State ────────────────────────────────────────────────────────────────────
-let mode=null,roster=[],absentRoster=[],timerSeconds=ROTATION_DURATION,timerRunning=true;
+let mode=null,roster=[],absentRoster=[],rotationStartedAt=Date.now(),timerRunning=true;
+function getTimerSeconds(){return Math.max(0,ROTATION_DURATION-Math.floor((Date.now()-rotationStartedAt)/1000));}
 let timerInterval=null,lunchInterval=null,dragSrc=null,absentOpen=false;
 let availBlocks=[],cmRNs=[],availLunchRoster=[],log=[];
 let ptoList=[],preceptingList=[],dailyInfo={msl:'',fingerprints:'',apt:'',meetings:'',other:''};
+let daPTO=[],daAway=[],daPrecept=[];
 let availCountdownInterval=null,clockInterval=null;
 
 // Firebase state
@@ -750,7 +815,7 @@ function applyRemoteState(data){
   mode=data.mode||null;
   roster=data.roster||[];
   absentRoster=data.absentRoster||[];
-  timerSeconds=data.timerSeconds||ROTATION_DURATION;
+  rotationStartedAt=data.rotationStartedAt||Date.now();
   timerRunning=data.timerRunning!==undefined?data.timerRunning:true;
   availBlocks=data.availBlocks||[];
   cmRNs=data.cmRNs||[];
@@ -758,6 +823,7 @@ function applyRemoteState(data){
   ptoList=data.ptoList||[];
   preceptingList=data.preceptingList||[];
   dailyInfo=data.dailyInfo||{msl:'',fingerprints:'',apt:'',meetings:'',other:''};
+  daPTO=data.daPTO||[];daAway=data.daAway||[];daPrecept=data.daPrecept||[];
   log=data.log||[];
   renderMode();
   document.getElementById('timerToggle').textContent=timerRunning?'Pause':'Resume';
@@ -765,7 +831,7 @@ function applyRemoteState(data){
 
 // ─── Persistence ─────────────────────────────────────────────────────────────
 function saveState(){
-  const state={mode,roster,absentRoster,timerSeconds,timerRunning,availBlocks,cmRNs,availLunchRoster,ptoList,preceptingList,dailyInfo,log,_ts:Date.now()};
+  const state={mode,roster,absentRoster,rotationStartedAt,timerRunning,availBlocks,cmRNs,availLunchRoster,ptoList,preceptingList,dailyInfo,daPTO,daAway,daPrecept,log,_ts:Date.now()};
   // Always save locally as fallback
   try { sessionStorage.setItem('pods_local',JSON.stringify(state)); } catch{}
   if(syncEnabled&&db&&dbRef){
@@ -814,11 +880,11 @@ async function init(){
 function loadLocal(){
   try{
     const saved=sessionStorage.getItem('pods_local');
-    if(saved){const s=JSON.parse(saved);mode=s.mode||null;roster=s.roster||[];absentRoster=s.absentRoster||[];timerSeconds=s.timerSeconds||ROTATION_DURATION;timerRunning=s.timerRunning!==undefined?s.timerRunning:true;availBlocks=s.availBlocks||[];cmRNs=s.cmRNs||[];availLunchRoster=s.availLunchRoster||[];ptoList=s.ptoList||[];preceptingList=s.preceptingList||[];dailyInfo=s.dailyInfo||{msl:'',fingerprints:'',apt:'',meetings:'',other:''};log=s.log||[];}
+    if(saved){const s=JSON.parse(saved);mode=s.mode||null;roster=s.roster||[];absentRoster=s.absentRoster||[];rotationStartedAt=s.rotationStartedAt||Date.now();timerRunning=s.timerRunning!==undefined?s.timerRunning:true;availBlocks=s.availBlocks||[];cmRNs=s.cmRNs||[];availLunchRoster=s.availLunchRoster||[];ptoList=s.ptoList||[];preceptingList=s.preceptingList||[];dailyInfo=s.dailyInfo||{msl:'',fingerprints:'',apt:'',meetings:'',other:''};daPTO=s.daPTO||[];daAway=s.daAway||[];daPrecept=s.daPrecept||[];log=s.log||[];}
   } catch{}
 }
 
-function fullReset(){mode=null;roster=[];absentRoster=[];timerSeconds=ROTATION_DURATION;availBlocks=[];cmRNs=[];availLunchRoster=[];ptoList=[];preceptingList=[];dailyInfo={msl:'',fingerprints:'',apt:'',meetings:'',other:''};log=[];}
+function fullReset(){mode=null;roster=[];absentRoster=[];rotationStartedAt=Date.now();availBlocks=[];cmRNs=[];availLunchRoster=[];ptoList=[];preceptingList=[];dailyInfo={msl:'',fingerprints:'',apt:'',meetings:'',other:''};daPTO=[];daAway=[];daPrecept=[];log=[];}
 
 // ─── Mode ─────────────────────────────────────────────────────────────────────
 window.setMode=function(m){
@@ -852,12 +918,18 @@ function updateDate(){
 }
 
 // ─── Timer ────────────────────────────────────────────────────────────────────
+const PODS_START_HOUR=8,PODS_START_MIN=30;
+function isBeforePodsStart(){const now=new Date();return now.getHours()*60+now.getMinutes()<PODS_START_HOUR*60+PODS_START_MIN;}
+
 function startPodsTimer(){
   clearInterval(timerInterval);
   timerInterval=setInterval(()=>{
-    if(!timerRunning)return;
-    timerSeconds--;
-    if(timerSeconds<=0){autoRotate();timerSeconds=ROTATION_DURATION;}
+    if(!timerRunning||isBeforePodsStart())return;
+    const secs=getTimerSeconds();
+    if(secs<=0){
+      rotationStartedAt=Date.now(); // reset BEFORE autoRotate to prevent double-fire
+      autoRotate();
+    }
     renderTimer();
     if(mode==='pods')renderLineupSnapshot();
     saveState();
@@ -866,16 +938,34 @@ function startPodsTimer(){
 }
 
 function renderTimer(){
+  const timerSeconds=getTimerSeconds();
   const m=Math.floor(timerSeconds/60),s=timerSeconds%60,pct=(timerSeconds/ROTATION_DURATION)*100;
   const fill=document.getElementById('timerFill'),disp=document.getElementById('timerDisplay');
+  const lbl=document.getElementById('timerLabel');
   if(!fill||!disp)return;
+  if(isBeforePodsStart()){
+    disp.textContent='30:00';fill.style.width='100%';fill.className='timer-fill';
+    disp.className='timer-display';
+    if(lbl)lbl.textContent='Waiting · PODs starts at 8:30 AM';
+    return;
+  }
+  if(lbl)lbl.textContent='Auto-rotate';
   disp.textContent=pad(m)+':'+pad(s);fill.style.width=pct+'%';
   const cls=timerSeconds<=60?'danger':timerSeconds<=300?'warn':'';
   fill.className='timer-fill'+(cls?' '+cls:'');disp.className='timer-display'+(cls?' '+cls:'');
 }
 
-document.getElementById('timerToggle').onclick=()=>{timerRunning=!timerRunning;document.getElementById('timerToggle').textContent=timerRunning?'Pause':'Resume';saveState();};
-document.getElementById('timerReset').onclick=()=>{timerSeconds=ROTATION_DURATION;renderTimer();saveState();showToast('Timer reset');};
+document.getElementById('timerToggle').onclick=()=>{
+  if(timerRunning){
+    // Pausing: store how many seconds were left as an offset
+    const secsLeft=getTimerSeconds();
+    rotationStartedAt=Date.now()-(ROTATION_DURATION-secsLeft)*1000;
+  }
+  timerRunning=!timerRunning;
+  document.getElementById('timerToggle').textContent=timerRunning?'Pause':'Resume';
+  saveState();
+};
+document.getElementById('timerReset').onclick=()=>{rotationStartedAt=Date.now();renderTimer();saveState();showToast('Timer reset');};
 
 // ─── Lunch watcher ────────────────────────────────────────────────────────────
 function getLunchRoster(){return mode==='pods'?roster:availLunchRoster;}
@@ -891,7 +981,7 @@ function startLunchWatcher(){
 function goToLunch(rn){
   if(rn.atLunch)return;
   const isFront=mode==='pods'&&getActive()[0]===rn;
-  const timeLeft=isFront?timerSeconds:0;
+  const timeLeft=isFront?getTimerSeconds():0;
   rn.frontCredit=timeLeft>CREDIT_MINIMUM?timeLeft:0;
   rn.atLunch=true;rn.lunchSecondsLeft=LUNCH_DURATION;
   rn.lunchActualTime=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
@@ -899,7 +989,7 @@ function goToLunch(rn){
   const planNote=rn.lunchSlot?' (planned '+rn.lunchSlot+')':'';
   const creditNote=rn.frontCredit>0?' — <span class="ev-credit">'+Math.floor(rn.frontCredit/60)+' min credit saved</span>':(timeLeft>0&&timeLeft<=CREDIT_MINIMUM?' — ≤5 min, no credit':'');
   addLog('<strong>'+esc(rn.name)+'</strong> <span class="ev-lunch">🥗 lunch at '+rn.lunchActualTime+planNote+'</span>'+creditNote,'lunch');
-  if(isFront){timerSeconds=ROTATION_DURATION;renderTimer();}
+  if(isFront){rotationStartedAt=Date.now();renderTimer();}
   if(mode==='pods')renderPods();else renderAvail();
   saveState();showToast(rn.name+' at lunch. Back in 30 min.');
 }
@@ -915,7 +1005,15 @@ function returnFromLunch(rn,auto){
 
 function applyCreditIfNeeded(){
   const front=getFrontRN();
-  if(front&&front.frontCredit>0){timerSeconds=front.frontCredit;front.frontCredit=0;renderTimer();addLog('<strong>'+esc(front.name)+'</strong> <span class="ev-credit">front credit applied — '+pad(Math.floor(timerSeconds/60))+':'+pad(timerSeconds%60)+'</span>','credit');saveState();}
+  if(front&&front.frontCredit>0){
+    const creditSecs=front.frontCredit;
+    front.frontCredit=0;
+    // Set rotationStartedAt so timer shows creditSecs remaining
+    rotationStartedAt=Date.now()-(ROTATION_DURATION-creditSecs)*1000;
+    renderTimer();
+    addLog('<strong>'+esc(front.name)+'</strong> <span class="ev-credit">front credit applied — '+pad(Math.floor(creditSecs/60))+':'+pad(creditSecs%60)+'</span>','credit');
+    saveState();
+  }
 }
 
 function setLunchPlan(idx,slot){roster[idx].lunchSlot=slot||null;renderLunchGrid(roster,'podsLunchGrid');saveState();}
@@ -944,7 +1042,7 @@ function rotate(reason,specificRN){
   const next=getFrontRN();
   const label=reason==='auto'?'<span class="ev-auto">(auto 30 min)</span>':reason==='call-front'?'(took a call)':reason==='call-back'?'<span class="ev-back">(out of turn)</span>':'(manual)';
   addLog('<strong>'+esc(target.name)+'</strong> → back '+label+'. Front: <strong>'+esc(next?next.name:'—')+'</strong>',reason);
-  timerSeconds=ROTATION_DURATION;renderTimer();applyCreditIfNeeded();renderPods();saveState();
+  rotationStartedAt=Date.now();renderTimer();applyCreditIfNeeded();renderPods();saveState();
   if(next)showToast(next.name+' is now up front');
 }
 
@@ -967,12 +1065,12 @@ window.addRN=function(){
   input.value='';renderPods();saveState();showToast(name+' joined');
 };
 
-window.moveToFront=function(idx){const rn=roster[idx];roster.splice(idx,1);roster.unshift(rn);timerSeconds=ROTATION_DURATION;renderTimer();applyCreditIfNeeded();addLog('<strong>'+esc(rn.name)+'</strong> moved to front','manual');renderPods();saveState();showToast(rn.name+' moved to front');};
+window.moveToFront=function(idx){const rn=roster[idx];roster.splice(idx,1);roster.unshift(rn);rotationStartedAt=Date.now();renderTimer();applyCreditIfNeeded();addLog('<strong>'+esc(rn.name)+'</strong> moved to front','manual');renderPods();saveState();showToast(rn.name+' moved to front');};
 window.openAddEveningHint=function(){document.getElementById('addType').value='evening';document.getElementById('addInput').focus();showToast('Type evening RN name and tap Join');};
-window.openPodsResetDialog=function(){showDialog('Reset PODs Lineup','Clear lineup and log to start fresh?',()=>{roster=[];absentRoster=[];timerSeconds=ROTATION_DURATION;log=[];addLog('Lineup reset','system');renderTimer();renderPods();renderLog();saveState();showToast('Lineup cleared');});};
+window.openPodsResetDialog=function(){showDialog('Reset PODs Lineup','Clear lineup and log to start fresh?',()=>{roster=[];absentRoster=[];rotationStartedAt=Date.now();log=[];addLog('Lineup reset','system');renderTimer();renderPods();renderLog();saveState();showToast('Lineup cleared');});};
 
 // ─── Pods render ──────────────────────────────────────────────────────────────
-function renderPods(){renderLunchGrid(roster,'podsLunchGrid');renderPodsLineup();renderPodsCallBtn();renderPodsAbsent();checkPodsCoverage();renderShareLineup();}
+function renderPods(){renderLunchGrid(roster,'podsLunchGrid');renderPodsLineup();renderPodsCallBtn();renderPodsAbsent();checkPodsCoverage();renderShareLineup();renderDailyAssign();}
 
 function renderPodsLineup(){
   const container=document.getElementById('lineupContainer');
@@ -1020,9 +1118,9 @@ function renderLineupSnapshot(){
   const snap=document.getElementById('lineupSnapshot'),txt=document.getElementById('snapshotText');
   const active=getActive();if(roster.length===0){snap.style.display='none';return;}
   snap.style.display='flex';
+  const timerSeconds=getTimerSeconds();
   const now=new Date(),minsLeft=Math.ceil(timerSeconds/60);
-  const startTime=new Date(now.getTime()-((ROTATION_DURATION-timerSeconds)*1000));
-  const startStr=startTime.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  const startStr=new Date(rotationStartedAt).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
   const parts=[];
   roster.forEach((rn,i)=>{
     const isFirst=active[0]===rn&&!rn.atLunch;
@@ -1204,6 +1302,71 @@ function renderHandoff(){
 window.copyHandoff=function(){const text=document.getElementById('handoffPreview').textContent;if(text==='No data yet.'){showToast('Nothing to copy yet');return;}navigator.clipboard.writeText(text).then(()=>showToast('Handoff message copied'));};
 function checkAvailCoverage(){const cur=getCurrentBlock(),warn=document.getElementById('availCoverageWarn'),txt=document.getElementById('availCoverageWarnText');if(cur&&cur.unavailable){txt.textContent=cur.name+' is unavailable. No active coverage.';warn.classList.add('visible');}else warn.classList.remove('visible');}
 
+// ─── Daily Assignment (PODs) ──────────────────────────────────────────────────
+window.toggleDailyAssign=function(){
+  const body=document.getElementById('dailyAssignBody');
+  const icon=document.getElementById('dailyAssignIcon');
+  const open=body.style.display==='block';
+  body.style.display=open?'none':'block';
+  icon.textContent=open?'▸':'▾';
+};
+
+window.addDAPTO=function(){
+  const name=document.getElementById('daPTOName').value.trim();
+  const status=document.getElementById('daPTOStatus').value;
+  const note=document.getElementById('daPTONote').value.trim();
+  if(!name){showToast('Enter a name');return;}
+  daPTO.push({name,status,note});
+  document.getElementById('daPTOName').value='';
+  document.getElementById('daPTONote').value='';
+  renderDailyAssign();saveState();
+};
+window.removeDAPTO=function(i){daPTO.splice(i,1);renderDailyAssign();saveState();};
+
+window.addDAAway=function(){
+  const name=document.getElementById('daAwayName').value.trim();
+  const reason=document.getElementById('daAwayReason').value;
+  const time=document.getElementById('daAwayTime').value.trim();
+  if(!name){showToast('Enter a name');return;}
+  daAway.push({name,reason,time});
+  document.getElementById('daAwayName').value='';
+  document.getElementById('daAwayTime').value='';
+  renderDailyAssign();saveState();
+};
+window.removeDAAway=function(i){daAway.splice(i,1);renderDailyAssign();saveState();};
+
+window.addDAPrecept=function(){
+  const preceptor=document.getElementById('daPreceptor').value.trim();
+  const preceptee=document.getElementById('daPreceptee').value.trim();
+  if(!preceptor||!preceptee){showToast('Enter both names');return;}
+  daPrecept.push({preceptor,preceptee});
+  document.getElementById('daPreceptor').value='';
+  document.getElementById('daPreceptee').value='';
+  renderDailyAssign();saveState();
+};
+window.removeDAPrecept=function(i){daPrecept.splice(i,1);renderDailyAssign();saveState();};
+
+function renderDailyAssign(){
+  // PTO list
+  const ptoEl=document.getElementById('daPTOList');
+  if(ptoEl){
+    if(!daPTO.length){ptoEl.innerHTML='<span class="cm-empty">None</span>';}
+    else{ptoEl.innerHTML=daPTO.map((p,i)=>'<div class="pto-chip"><span class="pto-status '+p.status+'">'+p.status+'</span>'+esc(p.name)+(p.note?' · <em style="color:#8a8070">'+esc(p.note)+'</em>':'')+'<button class="cm-remove" onclick="removeDAPTO('+i+')">✕</button></div>').join('');}
+  }
+  // Away list
+  const awayEl=document.getElementById('daAwayList');
+  if(awayEl){
+    if(!daAway.length){awayEl.innerHTML='<span class="cm-empty">None</span>';}
+    else{awayEl.innerHTML=daAway.map((a,i)=>'<div class="pto-chip"><span class="pto-status Apt">'+esc(a.reason)+'</span>'+esc(a.name)+(a.time?' · <em style="color:#8a8070">'+esc(a.time)+'</em>':'')+'<button class="cm-remove" onclick="removeDAAway('+i+')">✕</button></div>').join('');}
+  }
+  // Precept list
+  const prEl=document.getElementById('daPreceptList');
+  if(prEl){
+    if(!daPrecept.length){prEl.innerHTML='<span class="cm-empty">None</span>';}
+    else{prEl.innerHTML=daPrecept.map((p,i)=>'<div class="precept-chip">'+esc(p.preceptor)+'<span class="precept-arrow">→</span>'+esc(p.preceptee)+'<button class="cm-remove" onclick="removeDAPrecept('+i+')">✕</button></div>').join('');}
+  }
+}
+
 // ─── Log ──────────────────────────────────────────────────────────────────────
 function addLog(event,type){const now=new Date();log.unshift({time:now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}),event,type});if(log.length>150)log.pop();renderLog();}
 function renderLog(){const list=document.getElementById('logList');if(!log.length){list.innerHTML='<div class="log-empty">No activity yet.</div>';return;}list.innerHTML=log.map(e=>'<div class="log-entry"><span class="log-time">'+e.time+'</span><span class="log-event">'+e.event+'</span></div>').join('');}
@@ -1215,10 +1378,9 @@ function renderShareLineup(){
   if(!section||!preview)return;
   const active=getActive();if(active.length===0){section.style.display='none';return;}
   section.style.display='block';
+  const timerSeconds=getTimerSeconds();
   const now=new Date(),frontRN=active[0],minsLeft=Math.ceil(timerSeconds/60);
-  const startMins=ROTATION_DURATION-timerSeconds;
-  const startTime=new Date(now-startMins*1000);
-  const startStr=startTime.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  const startStr=new Date(rotationStartedAt).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
   const parts=[frontRN.name+' (up front since '+startStr+', '+minsLeft+'m left)'];
   active.slice(1).forEach(rn=>parts.push(rn.name+(rn.type==='evening'?' (Eve)':'')));
   preview.textContent=parts.join(', ');
