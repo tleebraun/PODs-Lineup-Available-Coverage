@@ -1,77 +1,309 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PODs/Available Lineup</title>
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background-color: #f9f6f1; color: #1a1a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-.app { max-width: 700px; margin: 0 auto; padding: 24px 16px 60px; }
+<title>PODs / Available Lineup</title>
 
-/* Sync status bar */
-.sync-bar { display: flex; align-items: center; gap: 8px; background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 10px; padding: 8px 14px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-.sync-dot { width: 8px; height: 8px; border-radius: 50%; background-color: #c4bdb0; flex-shrink: 0; transition: background-color 0.3s; }
+<style>
+/* =========================
+   BASE / RESET
+========================= */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background-color: #f9f6f1;
+  color: #1a1a1a;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+}
+
+/ BAR
+========================= */
+.sync-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #ffffff;
+  border: 1px solid #e0d8cc;
+  border-radius: 10px;
+  padding: 8px 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.sync-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #c4bdb0;
+  transition: background-color 0.3s;
+}
+
 .sync-dot.connected { background-color: #1a7a6e; }
-.sync-dot.connecting { background-color: #b87d1a; animation: pulse 1s infinite; }
+.sync-dot.connecting {
+  background-color: #b87d1a;
+  animation: pulse 1s infinite;
+}
 .sync-dot.error { background-color: #c0392b; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-.sync-label { font-size: 11px; color: #8a8070; font-weight: 600; flex: 1; }
+
+@keyframes pulse {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.sync-label {
+  font-size: 11px;
+  color: #8a8070;
+  font-weight: 600;
+}
+
 .sync-label.connected { color: #1a7a6e; }
 .sync-label.connecting { color: #b87d1a; }
 .sync-label.error { color: #c0392b; }
-.sync-users { font-size: 10px; color: #8a8070; background-color: #f3ede4; border-radius: 10px; padding: 2px 8px; font-weight: 700; }
-.sync-room { font-size: 10px; color: #8a8070; font-weight: 600; font-family: monospace; letter-spacing: 0.05em; }
 
-/* Setup overlay */
-.setup-overlay { position: fixed; inset: 0; background-color: #f9f6f1; z-index: 500; display: flex; align-items: flex-start; justify-content: center; padding: 24px 16px 40px; overflow-y: auto; }
+.sync-users {
+  font-size: 10px;
+  color: #8a8070;
+  background-color: #f3ede4;
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-weight: 700;
+  display: none;
+}
+
+.sync-room {
+  font-size: 10px;
+  color: #8a8070;
+  font-weight: 600;
+  font-family: monospace;
+  letter-spacing: 0.05em;
+}
+
+/* =========================
+   SETUP OVERLAY
+========================= */
+.setup-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: #f9f6f1;
+  z-index: 500;
+  display: flex;
+  justify-content: center;
+  padding: 24px 16px 40px;
+  overflow-y: auto;
+}
+
 .setup-overlay.hidden { display: none; }
-.setup-card { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 20px; padding: 32px 28px; max-width: 480px; width: 100%; box-shadow: 0 8px 40px rgba(0,0,0,0.10); margin: auto; }
-.setup-logo { font-size: 22px; font-weight: 900; color: #1a1a1a; letter-spacing: -0.03em; margin-bottom: 4px; }
+
+.setup-card {
+  background-color: #ffffff;
+  border: 1px solid #e0d8cc;
+  border-radius: 20px;
+  padding: 32px 28px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.10);
+  margin: auto;
+}
+
+.setup-logo {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin-bottom: 4px;
+}
+
 .setup-logo span { color: #1a7a6e; }
-.setup-sub { font-size: 13px; color: #8a8070; margin-bottom: 28px; line-height: 1.5; }
+
+.setup-sub {
+  font-size: 13px;
+  color: #8a8070;
+  margin-bottom: 28px;
+  line-height: 1.5;
+}
+
 .setup-section { margin-bottom: 24px; }
-.setup-section-title { font-size: 12px; font-weight: 800; color: #1a1a1a; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-.setup-section-num { width: 20px; height: 20px; border-radius: 50%; background-color: #1a7a6e; color: #fff; font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.setup-instructions { font-size: 12px; color: #4a4a4a; line-height: 1.7; margin-bottom: 12px; background-color: #f9f6f1; border-radius: 10px; padding: 12px 14px; border: 1px solid #e0d8cc; }
-.setup-instructions code { background-color: #e8e0d8; padding: 1px 5px; border-radius: 4px; font-size: 11px; color: #1a1a1a; font-family: monospace; }
-.setup-instructions a { color: #1a7a6e; font-weight: 700; }
-.setup-instructions ol { padding-left: 16px; }
-.setup-instructions li { margin-bottom: 4px; }
+
+.setup-section-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.setup-section-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #1a7a6e;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.setup-instructions {
+  font-size: 12px;
+  color: #4a4a4a;
+  line-height: 1.7;
+  background-color: #f9f6f1;
+  border-radius: 10px;
+  padding: 12px 14px;
+  border: 1px solid #e0d8cc;
+}
+
+.setup-instructions a {
+  color: #1a7a6e;
+  font-weight: 700;
+}
+
+.setup-instructions code {
+  background-color: #e8e0d8;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: monospace;
+}
+
 .setup-field { margin-bottom: 10px; }
-.setup-field label { font-size: 11px; font-weight: 700; color: #4a4a4a; display: block; margin-bottom: 5px; letter-spacing: 0.05em; text-transform: uppercase; }
-.setup-input { width: 100%; background-color: #f9f6f1; border: 1px solid #e0d8cc; border-radius: 8px; padding: 10px 12px; color: #1a1a1a; font-size: 13px; outline: none; font-weight: 600; font-family: monospace; }
-.setup-input:focus { border-color: #1a7a6e; background-color: #fff; }
-.setup-input::placeholder { color: #c4bdb0; font-family: monospace; }
-.setup-room-row { display: flex; gap: 8px; }
-.setup-room-input { flex: 1; background-color: #f9f6f1; border: 1px solid #e0d8cc; border-radius: 8px; padding: 10px 12px; color: #1a1a1a; font-size: 13px; outline: none; font-weight: 700; font-family: monospace; letter-spacing: 0.1em; text-transform: uppercase; }
-.setup-room-input:focus { border-color: #1a7a6e; }
-.setup-room-input::placeholder { color: #c4bdb0; font-family: monospace; text-transform: none; }
-.gen-room-btn { background-color: #f3ede4; border: 1px solid #e0d8cc; color: #4a4a4a; font-size: 11px; font-weight: 700; padding: 10px 14px; border-radius: 8px; cursor: pointer; white-space: nowrap; }
-.gen-room-btn:hover { border-color: #8a8070; color: #1a1a1a; }
-.setup-connect-btn { width: 100%; padding: 15px; background-color: #1a7a6e; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; color: #fff; cursor: pointer; margin-top: 8px; }
-.setup-connect-btn:hover { background-color: #15695e; }
-.setup-connect-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.setup-error { background-color: rgba(192,57,43,0.08); border: 1px solid rgba(192,57,43,0.3); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #c0392b; margin-top: 10px; display: none; }
+
+.setup-field label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.setup-input {
+  width: 100%;
+  background-color: #f9f6f1;
+  border: 1px solid #e0d8cc;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: monospace;
+  font-weight: 600;
+}
+
+.setup-input:focus {
+  outline: none;
+  border-color: #1a7a6e;
+  background-color: #ffffff;
+}
+
+.setup-room-row {
+  display: flex;
+  gap: 8px;
+}
+
+.setup-room-input {
+  flex: 1;
+  background-color: #f9f6f1;
+  border: 1px solid #e0d8cc;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: monospace;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.gen-room-btn {
+  background-color: #f3ede4;
+  border: 1px solid #e0d8cc;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.setup-connect-btn {
+  width: 100%;
+  padding: 15px;
+  background-color: #1a7a6e;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.setup-error {
+  background-color: rgba(192,57,43,0.08);
+  border: 1px solid rgba(192,57,43,0.3);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #c0392b;
+  margin-top: 10px;
+  display: none;
+}
+
 .setup-error.visible { display: block; }
-.setup-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
-.setup-divider-line { flex: 1; height: 1px; background-color: #e0d8cc; }
-.setup-divider-text { font-size: 11px; color: #8a8070; font-weight: 600; }
-.setup-offline-btn { width: 100%; padding: 12px; background-color: #f3ede4; border: 1px solid #e0d8cc; border-radius: 10px; font-size: 13px; font-weight: 700; color: #8a8070; cursor: pointer; }
-.setup-offline-btn:hover { border-color: #8a8070; color: #1a1a1a; }
 
-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; gap: 16px; }
-.brand-label { font-size: 10px; letter-spacing: 0.2em; color: #8a8070; text-transform: uppercase; font-weight: 600; margin-bottom: 2px; }
-.brand-title { font-size: 24px; font-weight: 800; color: #1a1a1a; letter-spacing: -0.02em; line-height: 1.1; }
-.brand-title span.g { color: #1a7a6e; }
-.brand-title span.b { color: #1a5f8a; }
-.date-block { text-align: right; font-size: 11px; color: #8a8070; line-height: 1.6; font-variant-numeric: tabular-nums; }
+/* =========================
+   HEADER
+========================= */
+header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
 
+.brand-label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: #8a8070;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.brand-title {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.brand-title .g { color: #1a7a6e; }
+.brand-title .b { color: #1a5f8a; }
+
+/* --- MORE STYLES CONTINUE IN PART 2 --- */
+</style>
+</head>
+<body>
+<!-- (PART 2 continues from the end of PART 1: we are already inside <body>) -->
+
+<!-- It’s valid to include a second <style> block inside <body>. This finishes all styles. -->
+<style>
+/* =========================
+   REMAINING STYLES
+========================= */
+
+/* Mode badge */
 .mode-badge { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; display: inline-block; margin-top: 5px; }
 .mode-badge.pods { background-color: rgba(26,122,110,0.1); border: 1px solid rgba(26,122,110,0.3); color: #1a7a6e; }
 .mode-badge.avail { background-color: rgba(26,95,138,0.1); border: 1px solid rgba(26,95,138,0.3); color: #1a5f8a; }
 
+/* Mode selector */
 .mode-selector { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 16px; padding: 32px 20px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
 .mode-selector-title { font-size: 17px; font-weight: 800; color: #1a1a1a; margin-bottom: 6px; }
 .mode-selector-sub { font-size: 12px; color: #8a8070; margin-bottom: 28px; line-height: 1.5; }
@@ -83,15 +315,17 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 .mode-btn-title { font-size: 13px; font-weight: 800; color: #1a1a1a; margin-bottom: 4px; }
 .mode-btn-desc { font-size: 11px; color: #8a8070; line-height: 1.4; }
 
+/* Misc controls */
 .switch-row { display: flex; justify-content: flex-end; margin-bottom: 14px; }
 .switch-btn { background: none; border: 1px solid #e0d8cc; color: #8a8070; font-size: 10px; font-weight: 700; padding: 5px 12px; border-radius: 6px; cursor: pointer; }
 .switch-btn:hover { border-color: #8a8070; color: #1a1a1a; }
-
 .section-label { font-size: 10px; letter-spacing: 0.2em; color: #8a8070; text-transform: uppercase; font-weight: 600; margin-bottom: 10px; display: block; }
 
+/* Coverage warn */
 .coverage-warn { background-color: rgba(192,57,43,0.07); border: 1px solid rgba(192,57,43,0.3); border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; font-size: 13px; color: #c0392b; display: none; align-items: center; gap: 8px; }
 .coverage-warn.visible { display: flex; }
 
+/* Timer */
 .timer-section { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
 .timer-label { font-size: 10px; letter-spacing: 0.15em; color: #8a8070; text-transform: uppercase; white-space: nowrap; font-weight: 600; }
 .timer-track { flex: 1; height: 6px; background-color: #e0d8cc; border-radius: 3px; overflow: hidden; }
@@ -104,6 +338,18 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 .timer-btn { background-color: #f3ede4; border: 1px solid #e0d8cc; color: #8a8070; font-size: 11px; padding: 6px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap; font-weight: 600; }
 .timer-btn:hover { border-color: #1a7a6e; color: #1a7a6e; }
 
+/* Manual start row */
+.manual-start-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.manual-start-label { font-size: 10px; font-weight: 700; color: #8a8070; text-transform: uppercase; letter-spacing: 0.08em; flex-shrink: 0; }
+.manual-start-input { width: 80px; background: #f9f6f1; border: 1px solid #e0d8cc; border-radius: 6px; padding: 5px 8px; font-size: 12px; font-weight: 700; color: #1a1a1a; outline: none; text-align: center; }
+.manual-start-input:focus { border-color: #1a7a6e; background: #fff; }
+.manual-start-btn { background: #1a1a1a; color: #fff; border: none; border-radius: 6px; padding: 5px 12px; font-size: 11px; font-weight: 800; cursor: pointer; }
+.manual-start-btn:hover { background: #333; }
+
+/* Pause banner */
+.pause-banner { background: rgba(184,125,26,0.12); border: 1px solid rgba(184,125,26,0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 10px; font-size: 12px; font-weight: 700; color: #7a5200; line-height: 1.4; }
+
+/* Lunch slots */
 .lunch-slots { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
 .lunch-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; }
 .lunch-slot-col { background-color: #f9f6f1; border: 1px solid #e0d8cc; border-radius: 8px; padding: 8px 5px; text-align: center; }
@@ -115,24 +361,23 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 .lunch-name-row { display: flex; align-items: center; justify-content: center; gap: 3px; }
 .lunch-actual-dot { width: 6px; height: 6px; border-radius: 50%; background-color: #7a3fa0; display: inline-block; }
 
+/* Absent */
 .absent-section { margin-bottom: 14px; }
 .absent-toggle { font-size: 10px; letter-spacing: 0.15em; color: #8a8070; text-transform: uppercase; background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 600; }
-.absent-toggle:hover { color: #1a1a1a; }
 .absent-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .absent-chip { background-color: #ffffff; border: 1px dashed #e0d8cc; border-radius: 20px; padding: 5px 12px; font-size: 12px; color: #8a8070; display: flex; align-items: center; gap: 8px; }
 .absent-restore { background: none; border: none; color: #8a8070; cursor: pointer; font-size: 11px; padding: 0; font-weight: 600; }
-.absent-restore:hover { color: #1a7a6e; }
 
+/* Lineup */
 .lineup-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .rn-count { font-size: 10px; color: #8a8070; background-color: #ffffff; border: 1px solid #e0d8cc; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
 .lineup-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
-
 .empty-state { background-color: #ffffff; border: 1px dashed #e0d8cc; border-radius: 12px; padding: 28px 20px; text-align: center; margin-bottom: 14px; }
 .empty-state-title { font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
 .empty-state-sub { font-size: 12px; color: #8a8070; line-height: 1.5; }
 
 .rn-card { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 10px; padding: 11px 13px; display: flex; align-items: center; gap: 9px; position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-.rn-card::before { content:’’; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; }
+.rn-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 3px 0 0 3px; }
 .rn-card.front { border-color: #1a7a6e; box-shadow: 0 2px 8px rgba(26,122,110,0.12); background-color: #f0faf8; }
 .rn-card.front::before { background-color: #1a7a6e; }
 .rn-card.at-lunch { border-color: #7a3fa0; background-color: rgba(122,63,160,0.04); }
@@ -143,312 +388,293 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 .rn-card.credited::before { background-color: #b87d1a; }
 .rn-card.drag-over { border-color: #1a7a6e; background-color: #f0faf8; }
 
-.position-num { font-size: 12px; color: #8a8070; min-width: 16px; text-align: center; flex-shrink: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+.position-num { font-size: 12px; color: #8a8070; min-width: 16px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
 .rn-card.front .position-num { color: #1a7a6e; }
 .rn-card.at-lunch .position-num { color: #7a3fa0; }
 .rn-card.credited .position-num { color: #b87d1a; }
 
-.rn-avatar { width:32px; height:32px; border-radius:50%; background-color:#f3ede4; border:1px solid #e0d8cc; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#8a8070; flex-shrink:0; }
-.rn-card.front .rn-avatar { background-color:rgba(26,122,110,0.1); border-color:#1a7a6e; color:#1a7a6e; }
-.rn-card.at-lunch .rn-avatar { background-color:rgba(122,63,160,0.1); border-color:#7a3fa0; color:#7a3fa0; }
-.rn-card.evening .rn-avatar { background-color:rgba(26,95,138,0.1); border-color:#1a5f8a; color:#1a5f8a; }
-.rn-card.credited .rn-avatar { background-color:rgba(184,125,26,0.1); border-color:#b87d1a; color:#b87d1a; }
+.rn-avatar { width: 32px; height: 32px; border-radius: 50%; background-color: #f3ede4; border: 1px solid #e0d8cc; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #8a8070; }
+.rn-card.front .rn-avatar { background-color: rgba(26,122,110,0.1); border-color: #1a7a6e; color: #1a7a6e; }
+.rn-card.at-lunch .rn-avatar { background-color: rgba(122,63,160,0.1); border-color: #7a3fa0; color: #7a3fa0; }
+.rn-card.evening .rn-avatar { background-color: rgba(26,95,138,0.1); border-color: #1a5f8a; color: #1a5f8a; }
+.rn-card.credited .rn-avatar { background-color: rgba(184,125,26,0.1); border-color: #b87d1a; color: #b87d1a; }
 
-.rn-info { flex:1; min-width:0; }
-.rn-name { font-size:14px; font-weight:700; color:#1a1a1a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.rn-card.front .rn-name { color:#1a7a6e; }
-.rn-card.at-lunch .rn-name { color:#7a3fa0; }
-.rn-card.evening .rn-name { color:#1a5f8a; }
-.rn-card.credited .rn-name { color:#b87d1a; }
-.rn-meta { font-size:10px; color:#8a8070; margin-top:2px; font-weight:500; }
+.rn-info { flex: 1; min-width: 0; }
+.rn-name { font-size: 14px; font-weight: 700; color: #1a1a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rn-card.front .rn-name { color: #1a7a6e; }
+.rn-card.at-lunch .rn-name { color: #7a3fa0; }
+.rn-card.evening .rn-name { color: #1a5f8a; }
+.rn-card.credited .rn-name { color: #b87d1a; }
 
-.rn-badges { display:flex; gap:4px; align-items:center; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end; }
-.badge { font-size:9px; letter-spacing:0.1em; text-transform:uppercase; padding:3px 7px; border-radius:20px; white-space:nowrap; font-weight:700; }
-.badge-front { background-color:rgba(26,122,110,0.1); border:1px solid rgba(26,122,110,0.3); color:#1a7a6e; }
-.badge-lunch { background-color:rgba(122,63,160,0.1); border:1px solid rgba(122,63,160,0.3); color:#7a3fa0; }
-.badge-evening { background-color:rgba(26,95,138,0.1); border:1px solid rgba(26,95,138,0.3); color:#1a5f8a; }
+.rn-meta { font-size: 10px; color: #8a8070; margin-top: 2px; font-weight: 500; }
+.rn-badges { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.badge { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 7px; border-radius: 20px; white-space: nowrap; font-weight: 700; }
+.badge-front { background-color: rgba(26,122,110,0.1); border: 1px solid rgba(26,122,110,0.3); color: #1a7a6e; }
+.badge-lunch { background-color: rgba(122,63,160,0.1); border: 1px solid rgba(122,63,160,0.3); color: #7a3fa0; }
+.badge-evening { background-color: rgba(26,95,138,0.1); border: 1px solid rgba(26,95,138,0.3); color: #1a5f8a; }
+.lunch-countdown { font-size: 10px; color: #7a3fa0; background-color: rgba(122,63,160,0.08); border: 1px solid rgba(122,63,160,0.3); padding: 2px 7px; border-radius: 10px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.credit-display { font-size: 10px; color: #b87d1a; background-color: rgba(184,125,26,0.08); border: 1px solid rgba(184,125,26,0.3); padding: 2px 7px; border-radius: 10px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.lunch-plan-select { background-color: #f9f6f1; border: 1px solid #e0d8cc; color: #8a8070; font-size: 10px; padding: 5px 4px; border-radius: 6px; cursor: pointer; outline: none; max-width: 82px; font-weight: 600; }
+.lunch-plan-select.set { color: #7a3fa0; border-color: rgba(122,63,160,0.3); background-color: rgba(122,63,160,0.06); }
+.rn-actions { display: flex; gap: 3px; align-items: center; }
 
-.lunch-countdown { font-size:10px; color:#7a3fa0; background-color:rgba(122,63,160,0.08); border:1px solid rgba(122,63,160,0.3); padding:2px 7px; border-radius:10px; font-weight:700; font-variant-numeric:tabular-nums; }
-.credit-display { font-size:10px; color:#b87d1a; background-color:rgba(184,125,26,0.08); border:1px solid rgba(184,125,26,0.3); padding:2px 7px; border-radius:10px; font-weight:700; font-variant-numeric:tabular-nums; }
+.icon-btn { background: none; border: 1px solid transparent; color: #c4bdb0; cursor: pointer; padding: 5px; border-radius: 6px; font-size: 13px; line-height: 1; display: flex; align-items: center; white-space: nowrap; }
+.icon-btn:hover { border-color: #e0d8cc; color: #4a4a4a; background-color: #f3ede4; }
+.icon-btn.to-back:hover { color: #b87d1a; border-color: #b87d1a; background-color: rgba(184,125,26,0.06); }
+.icon-btn.to-front:hover { color: #1a7a6e; border-color: #1a7a6e; background-color: rgba(26,122,110,0.06); }
+.icon-btn.go-lunch:hover { color: #7a3fa0; border-color: #7a3fa0; background-color: rgba(122,63,160,0.06); }
+.icon-btn.lunch-return:hover { color: #7a3fa0; border-color: #7a3fa0; }
+.icon-btn.absent:hover { color: #8a8070; border-color: #8a8070; }
 
-.lunch-plan-select { background-color:#f9f6f1; border:1px solid #e0d8cc; color:#8a8070; font-size:10px; padding:5px 4px; border-radius:6px; cursor:pointer; outline:none; max-width:82px; flex-shrink:0; font-weight:600; }
-.lunch-plan-select.set { color:#7a3fa0; border-color:rgba(122,63,160,0.3); background-color:rgba(122,63,160,0.06); }
+.drag-handle { color: #c4bdb0; font-size: 12px; cursor: grab; padding: 2px 3px; border-radius: 4px; user-select: none; }
+.drag-handle:hover { color: #8a8070; }
 
-.rn-actions { display:flex; gap:3px; align-items:center; flex-shrink:0; }
-.icon-btn { background:none; border:1px solid transparent; color:#c4bdb0; cursor:pointer; padding:5px; border-radius:6px; font-size:13px; line-height:1; display:flex; align-items:center; white-space:nowrap; }
-.icon-btn:hover { border-color:#e0d8cc; color:#4a4a4a; background-color:#f3ede4; }
-.icon-btn.to-back:hover { color:#b87d1a; border-color:#b87d1a; background-color:rgba(184,125,26,0.06); }
-.icon-btn.to-front:hover { color:#1a7a6e; border-color:#1a7a6e; background-color:rgba(26,122,110,0.06); }
-.icon-btn.go-lunch:hover { color:#7a3fa0; border-color:#7a3fa0; background-color:rgba(122,63,160,0.06); }
-.icon-btn.lunch-return:hover { color:#7a3fa0; border-color:#7a3fa0; }
-.icon-btn.absent:hover { color:#8a8070; border-color:#8a8070; }
-.drag-handle { color:#c4bdb0; font-size:12px; cursor:grab; padding:2px 3px; border-radius:4px; user-select:none; flex-shrink:0; }
-.drag-handle:hover { color:#8a8070; }
+/* Lineup snapshot + primary/secondary actions */
+.lineup-snapshot { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 10px; padding: 11px 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.snapshot-text { flex: 1; font-size: 13px; color: #4a4a4a; line-height: 1.5; font-weight: 500; min-width: 0; }
+.snapshot-text .snap-front { font-weight: 800; color: #1a7a6e; }
+.snapshot-empty { color: #c4bdb0; font-style: italic; }
+.copy-snap-btn { background-color: rgba(26,122,110,0.1); border: 1px solid rgba(26,122,110,0.3); color: #1a7a6e; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 7px; cursor: pointer; white-space: nowrap; }
 
-.lineup-snapshot { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:10px; padding:11px 14px; margin-bottom:10px; display:flex; align-items:center; gap:10px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
-.snapshot-text { flex:1; font-size:13px; color:#4a4a4a; line-height:1.5; font-weight:500; min-width:0; }
-.snapshot-text .snap-front { font-weight:800; color:#1a7a6e; }
-.snapshot-empty { color:#c4bdb0; font-style:italic; }
-.copy-snap-btn { background-color:rgba(26,122,110,0.1); border:1px solid rgba(26,122,110,0.3); color:#1a7a6e; font-size:11px; font-weight:700; padding:6px 12px; border-radius:7px; cursor:pointer; white-space:nowrap; flex-shrink:0; }
-.copy-snap-btn:hover { background-color:#1a7a6e; color:#ffffff; }
+.call-btn { width: 100%; padding: 16px 24px; background-color: #1a7a6e; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; color: #ffffff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
+.call-btn .front-name { opacity: .75; font-weight: 600; font-size: 13px; }
+.call-btn:disabled { opacity: .35; cursor: not-allowed; }
 
-.call-btn { width:100%; padding:16px 24px; background-color:#1a7a6e; border:none; border-radius:12px; font-size:15px; font-weight:800; color:#ffffff; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:10px; }
-.call-btn:hover { background-color:#15695e; transform:translateY(-1px); box-shadow:0 6px 20px rgba(26,122,110,0.25); }
-.call-btn:active { transform:translateY(0); }
-.call-btn .front-name { opacity:.75; font-weight:600; font-size:13px; }
-.call-btn:disabled { opacity:.35; cursor:not-allowed; transform:none; box-shadow:none; }
+.secondary-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.sec-btn { padding: 11px 8px; background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 10px; color: #8a8070; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.sec-btn:hover { border-color: #8a8070; color: #1a1a1a; background-color: #f3ede4; }
 
-.secondary-actions { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:14px; }
-.sec-btn { padding:11px 8px; background-color:#ffffff; border:1px solid #e0d8cc; border-radius:10px; color:#8a8070; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
-.sec-btn:hover { border-color:#8a8070; color:#1a1a1a; background-color:#f3ede4; }
+/* Join */
+.add-section { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.add-input { flex: 1; min-width: 130px; background-color: #f9f6f1; border: 1px solid #e0d8cc; border-radius: 8px; padding: 10px 12px; font-size: 14px; font-weight: 600; outline: none; }
+.add-input:focus { border-color: #1a7a6e; }
+.add-input::placeholder { color: #c4bdb0; }
+.add-type-select { background-color: #f9f6f1; border: 1px solid #e0d8cc; color: #4a4a4a; font-size: 11px; padding: 10px 8px; border-radius: 8px; cursor: pointer; outline: none; font-weight: 600; }
+.add-btn { background-color: rgba(26,122,110,0.1); border: 1px solid rgba(26,122,110,0.3); color: #1a7a6e; font-size: 14px; font-weight: 800; padding: 10px 18px; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+.add-btn:hover { background-color: #1a7a6e; color: #ffffff; }
 
-.add-section { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:12px; padding:12px 14px; margin-bottom:14px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
-.add-input { flex:1; min-width:130px; background-color:#f9f6f1; border:1px solid #e0d8cc; border-radius:8px; padding:10px 12px; color:#1a1a1a; font-size:14px; outline:none; font-weight:600; }
-.add-input::placeholder { color:#c4bdb0; }
-.add-input:focus { border-color:#1a7a6e; }
-.add-type-select { background-color:#f9f6f1; border:1px solid #e0d8cc; color:#4a4a4a; font-size:11px; padding:10px 8px; border-radius:8px; cursor:pointer; outline:none; font-weight:600; }
-.add-btn { background-color:rgba(26,122,110,0.1); border:1px solid rgba(26,122,110,0.3); color:#1a7a6e; font-size:14px; font-weight:800; padding:10px 18px; border-radius:8px; cursor:pointer; white-space:nowrap; }
-.add-btn:hover { background-color:#1a7a6e; color:#ffffff; }
+/* Available mode header + info */
+.avail-header-bar { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.avail-current-label { font-size: 10px; letter-spacing: 0.15em; color: #8a8070; text-transform: uppercase; font-weight: 600; white-space: nowrap; }
+.avail-current-name { font-size: 18px; font-weight: 800; color: #1a5f8a; flex: 1; }
+.avail-current-name.all-watch { color: #1a7a6e; }
+.avail-countdown { font-size: 15px; font-weight: 700; color: #8a8070; font-variant-numeric: tabular-nums; min-width: 52px; text-align: right; }
+.avail-countdown.soon { color: #b87d1a; }
 
-.avail-header-bar { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:12px; padding:14px 16px; margin-bottom:14px; display:flex; align-items:center; gap:12px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
-.avail-current-label { font-size:10px; letter-spacing:0.15em; color:#8a8070; text-transform:uppercase; font-weight:600; white-space:nowrap; }
-.avail-current-name { font-size:18px; font-weight:800; color:#1a5f8a; flex:1; }
-.avail-current-name.all-watch { color:#1a7a6e; }
-.avail-countdown { font-size:15px; font-weight:700; color:#8a8070; font-variant-numeric:tabular-nums; min-width:52px; text-align:right; }
-.avail-countdown.soon { color:#b87d1a; }
+/* Cards / lists in available mode */
+.cm-section { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.cm-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.cm-chip { background-color: #f3ede4; border: 1px solid #e0d8cc; border-radius: 20px; padding: 6px 14px; font-size: 12px; color: #4a4a4a; display: flex; align-items: center; gap: 8px; }
+.cm-remove { background: none; border: none; color: #c4bdb0; cursor: pointer; font-size: 11px; padding: 0; }
+.cm-remove:hover { color: #c0392b; }
+.cm-empty { font-size: 11px; color: #c4bdb0; }
+.add-cm-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.add-cm-input { flex: 1; background-color: #f9f6f1; border: 1px solid #e0d8cc; border-radius: 8px; padding: 8px 12px; color: #1a1a1a; font-size: 13px; font-weight: 600; outline: none; }
+.add-cm-input::placeholder { color: #c4bdb0; }
+.add-cm-btn { background-color: #f3ede4; border: 1px solid #e0d8cc; color: #8a8070; font-size: 12px; font-weight: 800; padding: 8px 14px; border-radius: 8px; cursor: pointer; }
+.add-cm-btn:hover { border-color: #8a8070; color: #1a1a1a; }
 
-.avail-blocks-section { margin-bottom:14px; }
-.avail-block-list { display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
+/* Avail blocks */
+.avail-blocks-section { margin-bottom: 14px; }
+.avail-block-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.avail-block { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 10px; padding: 11px 14px; display: flex; align-items: center; gap: 10px; position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.avail-block::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 3px 0 0 3px; background-color: transparent; }
+.avail-block.active-block { border-color: #1a5f8a; background-color: rgba(26,95,138,0.04); box-shadow: 0 2px 8px rgba(26,95,138,0.1); }
+.avail-block.active-block::before { background-color: #1a5f8a; }
+.avail-block.all-watch-block.active-block { border-color: #1a7a6e; background-color: rgba(26,122,110,0.04); box-shadow: 0 2px 8px rgba(26,122,110,0.1); }
+.avail-block.all-watch-block.active-block::before { background-color: #1a7a6e; }
+.avail-block.past-block { opacity: .5; }
+.avail-block.unavail-block { border-color: #b87d1a; background-color: rgba(184,125,26,0.04); }
+.avail-block.unavail-block::before { background-color: #b87d1a; }
+.avail-block-time { font-size: 11px; font-weight: 700; color: #8a8070; min-width: 80px; font-variant-numeric: tabular-nums; }
+.avail-block.active-block .avail-block-time { color: #1a5f8a; }
+.avail-block.all-watch-block.active-block .avail-block-time { color: #1a7a6e; }
+.avail-block-avatar { width: 30px; height: 30px; border-radius: 50%; background-color: #f3ede4; border: 1px solid #e0d8cc; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #8a8070; }
+.avail-block.active-block .avail-block-avatar { background-color: rgba(26,95,138,0.1); border-color: #1a5f8a; color: #1a5f8a; }
+.avail-block.all-watch-block.active-block .avail-block-avatar { background-color: rgba(26,122,110,0.1); border-color: #1a7a6e; color: #1a7a6e; }
+.avail-block-info { flex: 1; min-width: 0; }
+.avail-block-name { font-size: 14px; font-weight: 700; color: #1a1a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.avail-block.active-block .avail-block-name { color: #1a5f8a; }
+.avail-block.all-watch-block.active-block .avail-block-name { color: #1a7a6e; }
+.avail-block-meta { font-size: 10px; color: #8a8070; margin-top: 2px; font-weight: 500; }
+.avail-block-badges { display: flex; gap: 4px; align-items: center; }
 
-.avail-block { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:10px; padding:11px 14px; display:flex; align-items:center; gap:10px; position:relative; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
-.avail-block::before { content:’’; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; background-color:transparent; }
-.avail-block.active-block { border-color:#1a5f8a; background-color:rgba(26,95,138,0.04); box-shadow:0 2px 8px rgba(26,95,138,0.1); }
-.avail-block.active-block::before { background-color:#1a5f8a; }
-.avail-block.all-watch-block.active-block { border-color:#1a7a6e; background-color:rgba(26,122,110,0.04); box-shadow:0 2px 8px rgba(26,122,110,0.1); }
-.avail-block.all-watch-block.active-block::before { background-color:#1a7a6e; }
-.avail-block.past-block { opacity:.5; }
-.avail-block.unavail-block { border-color:#b87d1a; background-color:rgba(184,125,26,0.04); }
-.avail-block.unavail-block::before { background-color:#b87d1a; }
+.badge-active { background-color: rgba(26,95,138,0.1); border: 1px solid rgba(26,95,138,0.3); color: #1a5f8a; }
+.badge-unavail { background-color: rgba(184,125,26,0.1); border: 1px solid rgba(184,125,26,0.3); color: #b87d1a; }
+.badge-past { background-color: rgba(138,128,112,0.1); border: 1px solid rgba(138,128,112,0.2); color: #8a8070; }
+.badge-allwatch { background-color: rgba(26,122,110,0.1); border: 1px solid rgba(26,122,110,0.3); color: #1a7a6e; }
 
-.avail-block-time { font-size:11px; font-weight:700; color:#8a8070; min-width:80px; flex-shrink:0; font-variant-numeric:tabular-nums; }
-.avail-block.active-block .avail-block-time { color:#1a5f8a; }
-.avail-block.all-watch-block.active-block .avail-block-time { color:#1a7a6e; }
+.avail-block-actions { display: flex; gap: 3px; align-items: center; }
 
-.avail-block-avatar { width:30px; height:30px; border-radius:50%; background-color:#f3ede4; border:1px solid #e0d8cc; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#8a8070; flex-shrink:0; }
-.avail-block.active-block .avail-block-avatar { background-color:rgba(26,95,138,0.1); border-color:#1a5f8a; color:#1a5f8a; }
-.avail-block.all-watch-block.active-block .avail-block-avatar { background-color:rgba(26,122,110,0.1); border-color:#1a7a6e; color:#1a7a6e; }
+.call-count-btn { background-color: #f3ede4; border: 1px solid #e0d8cc; color: #1a1a1a; font-size: 12px; font-weight: 800; padding: 5px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 4px; min-width: 36px; justify-content: center; font-variant-numeric: tabular-nums; }
+.call-count-btn:hover { border-color: #1a5f8a; color: #1a5f8a; }
+.call-count-label { font-size: 9px; color: #8a8070; font-weight: 600; }
 
-.avail-block-info { flex:1; min-width:0; }
-.avail-block-name { font-size:14px; font-weight:700; color:#1a1a1a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.avail-block.active-block .avail-block-name { color:#1a5f8a; }
-.avail-block.all-watch-block.active-block .avail-block-name { color:#1a7a6e; }
-.avail-block-meta { font-size:10px; color:#8a8070; margin-top:2px; font-weight:500; }
+/* Add block */
+.add-block-section { background-color: #ffffff; border: 1px dashed #e0d8cc; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
+.add-block-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.block-time-input { background-color: #f9f6f1; border: 1px solid #e0d8cc; border-radius: 8px; padding: 9px 10px; color: #1a1a1a; font-size: 13px; outline: none; font-weight: 600; width: 95px; }
+.block-time-input:focus { border-color: #1a5f8a; }
+.block-name-input { flex: 1; min-width: 100px; background-color: #f9f6f1; border: 1px solid #e0d8cc; border-radius: 8px; padding: 9px 12px; color: #1a1a1a; font-size: 13px; outline: none; font-weight: 600; }
+.block-name-input::placeholder { color: #c4bdb0; }
+.block-name-input:focus { border-color: #1a5f8a; }
+.add-block-btn { background-color: rgba(26,95,138,0.1); border: 1px solid rgba(26,95,138,0.3); color: #1a5f8a; font-size: 13px; font-weight: 800; padding: 9px 16px; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+.add-block-btn:hover { background-color: #1a5f8a; color: #ffffff; }
 
-.avail-block-badges { display:flex; gap:4px; align-items:center; flex-shrink:0; }
-.badge-active { background-color:rgba(26,95,138,0.1); border:1px solid rgba(26,95,138,0.3); color:#1a5f8a; }
-.badge-unavail { background-color:rgba(184,125,26,0.1); border:1px solid rgba(184,125,26,0.3); color:#b87d1a; }
-.badge-past { background-color:rgba(138,128,112,0.1); border:1px solid rgba(138,128,112,0.2); color:#8a8070; }
-.badge-allwatch { background-color:rgba(26,122,110,0.1); border:1px solid rgba(26,122,110,0.3); color:#1a7a6e; }
+/* Daily assignment panel (PODs) */
+.daily-assign-section { margin-bottom: 14px; border: 1px solid #e0d8cc; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.daily-assign-toggle { width: 100%; background: none; border: none; padding: 12px 16px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 11px; font-weight: 800; color: #4a4a4a; text-transform: uppercase; letter-spacing: 0.08em; text-align: left; }
+.daily-assign-toggle:hover { background: #f9f6f1; }
+.daily-assign-body { padding: 0 14px 14px; }
+.da-col { display: flex; flex-direction: column; gap: 12px; }
+.da-block { background: #f9f6f1; border-radius: 8px; padding: 10px 12px; }
+.da-block-title { font-size: 10px; font-weight: 800; color: #8a8070; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+.da-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; min-height: 24px; }
+.da-add-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.da-input { flex: 1; min-width: 80px; background: #fff; border: 1px solid #e0d8cc; border-radius: 6px; padding: 6px 10px; color: #1a1a1a; font-size: 12px; font-weight: 600; outline: none; }
+.da-input:focus { border-color: #1a7a6e; }
 
-.avail-block-actions { display:flex; gap:3px; align-items:center; flex-shrink:0; }
-.call-count-btn { background-color:#f3ede4; border:1px solid #e0d8cc; color:#1a1a1a; font-size:12px; font-weight:800; padding:5px 10px; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:4px; min-width:36px; justify-content:center; font-variant-numeric:tabular-nums; }
-.call-count-btn:hover { border-color:#1a5f8a; color:#1a5f8a; }
-.call-count-label { font-size:9px; color:#8a8070; font-weight:600; }
+/* PTO chips in daily assignment */
+.pto-chip { background-color: #f3ede4; border: 1px solid #e0d8cc; border-radius: 20px; padding: 5px 12px; font-size: 12px; color: #4a4a4a; display: flex; align-items: center; gap: 6px; }
+.pto-status { font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 10px; text-transform: uppercase; }
+.pto-status.PTO { background-color: rgba(26,95,138,0.1); color: #1a5f8a; }
+.pto-status.Flex { background-color: rgba(26,122,110,0.1); color: #1a7a6e; }
+.pto-status.LOA { background-color: rgba(184,125,26,0.1); color: #b87d1a; }
+.pto-status.Out { background-color: rgba(192,57,43,0.1); color: #c0392b; }
+.pto-status.Apt { background-color: rgba(122,63,160,0.1); color: #7a3fa0; }
 
-.add-block-section { background-color:#ffffff; border:1px dashed #e0d8cc; border-radius:10px; padding:12px 14px; margin-bottom:14px; }
-.add-block-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-.block-time-input { background-color:#f9f6f1; border:1px solid #e0d8cc; border-radius:8px; padding:9px 10px; color:#1a1a1a; font-size:13px; outline:none; font-weight:600; width:95px; }
-.block-time-input:focus { border-color:#1a5f8a; }
-.block-name-input { flex:1; min-width:100px; background-color:#f9f6f1; border:1px solid #e0d8cc; border-radius:8px; padding:9px 12px; color:#1a1a1a; font-size:13px; outline:none; font-weight:600; }
-.block-name-input::placeholder { color:#c4bdb0; }
-.block-name-input:focus { border-color:#1a5f8a; }
-.add-block-btn { background-color:rgba(26,95,138,0.1); border:1px solid rgba(26,95,138,0.3); color:#1a5f8a; font-size:13px; font-weight:800; padding:9px 16px; border-radius:8px; cursor:pointer; white-space:nowrap; }
-.add-block-btn:hover { background-color:#1a5f8a; color:#ffffff; }
+/* Precepting chip */
+.precept-chip { background-color: #f3ede4; border: 1px solid #e0d8cc; border-radius: 20px; padding: 5px 12px; font-size: 12px; color: #4a4a4a; display: flex; align-items: center; gap: 6px; }
+.precept-arrow { color: #8a8070; font-weight: 700; }
 
-.cm-section { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:12px; padding:14px 16px; margin-bottom:14px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
-.cm-list { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
-.cm-chip { background-color:#f3ede4; border:1px solid #e0d8cc; border-radius:20px; padding:6px 14px; font-size:12px; color:#4a4a4a; display:flex; align-items:center; gap:8px; }
-.cm-remove { background:none; border:none; color:#c4bdb0; cursor:pointer; font-size:11px; padding:0; }
-.cm-remove:hover { color:#c0392b; }
-.cm-empty { font-size:11px; color:#c4bdb0; }
-.add-cm-row { display:flex; gap:8px; margin-top:10px; }
-.add-cm-input { flex:1; background-color:#f9f6f1; border:1px solid #e0d8cc; border-radius:8px; padding:8px 12px; color:#1a1a1a; font-size:13px; outline:none; font-weight:600; }
-.add-cm-input::placeholder { color:#c4bdb0; }
-.add-cm-input:focus { border-color:#8a8070; }
-.add-cm-btn { background-color:#f3ede4; border:1px solid #e0d8cc; color:#8a8070; font-size:12px; font-weight:800; padding:8px 14px; border-radius:8px; cursor:pointer; }
-.add-cm-btn:hover { border-color:#8a8070; color:#1a1a1a; }
+/* Handoff + Share + Log */
+.handoff-section { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.handoff-preview { font-size: 12px; color: #4a4a4a; background-color: #f9f6f1; border-radius: 8px; padding: 10px 12px; margin-top: 8px; font-family: monospace; line-height: 1.6; white-space: pre-wrap; border: 1px solid #e0d8cc; }
+.copy-handoff-btn { margin-top: 10px; background-color: rgba(26,95,138,0.1); border: 1px solid rgba(26,95,138,0.3); color: #1a5f8a; font-size: 11px; font-weight: 700; padding: 7px 14px; border-radius: 8px; cursor: pointer; }
+.share-lineup-section { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 12px; overflow: hidden; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.share-lineup-header { padding: 12px 16px; border-bottom: 1px solid #e0d8cc; display: flex; align-items: center; justify-content: space-between; }
+.share-lineup-preview { padding: 12px 16px; font-size: 13px; color: #4a4a4a; line-height: 1.6; font-weight: 500; }
 
-/* Manual start row */
-.manual-start-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
-.manual-start-label { font-size:10px; font-weight:700; color:#8a8070; text-transform:uppercase; letter-spacing:0.08em; flex-shrink:0; }
-.manual-start-input { width:80px; background:#f9f6f1; border:1px solid #e0d8cc; border-radius:6px; padding:5px 8px; font-size:12px; font-weight:700; color:#1a1a1a; outline:none; text-align:center; }
-.manual-start-input:focus { border-color:#1a7a6e; background:#fff; }
-.manual-start-btn { background:#1a1a1a; color:#fff; border:none; border-radius:6px; padding:5px 12px; font-size:11px; font-weight:800; cursor:pointer; }
-.manual-start-btn:hover { background:#333; }
+.log-section { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.log-header { padding: 12px 16px; border-bottom: 1px solid #e0d8cc; display: flex; align-items: center; justify-content: space-between; }
+.copy-log-btn { font-size: 10px; color: #8a8070; background: none; border: 1px solid #e0d8cc; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+.copy-log-btn:hover { border-color: rgba(26,122,110,0.3); color: #1a7a6e; }
+.log-list { max-height: 200px; overflow-y: auto; padding: 6px 0; }
+.log-list::-webkit-scrollbar { width: 4px; }
+.log-list::-webkit-scrollbar-thumb { background-color: #e0d8cc; border-radius: 2px; }
+.log-entry { padding: 7px 16px; display: flex; align-items: baseline; gap: 10px; border-bottom: 1px solid #f3ede4; }
+.log-entry:last-child { border-bottom: none; }
+.log-time { font-size: 10px; color: #8a8070; white-space: nowrap; min-width: 52px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.log-event { font-size: 12px; color: #4a4a4a; line-height: 1.4; }
+.log-event strong { color: #1a7a6e; font-weight: 700; }
+.log-event .ev-avail { color: #1a5f8a; }
+.log-event .ev-lunch { color: #7a3fa0; }
+.log-event .ev-auto, .log-event .ev-back, .log-event .ev-credit { color: #b87d1a; }
+.log-empty { padding: 20px 16px; font-size: 11px; color: #8a8070; text-align: center; }
 
-/* Pause banner */
-.pause-banner { background:rgba(184,125,26,0.12); border:1px solid rgba(184,125,26,0.3); border-radius:8px; padding:10px 14px; margin-bottom:10px; font-size:12px; font-weight:700; color:#7a5200; line-height:1.4; }
+/* Overlay / dialog / toast */
+.overlay { position: fixed; inset: 0; background-color: rgba(26,20,14,0.5); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.overlay.active { opacity: 1; pointer-events: all; }
+.dialog { background-color: #ffffff; border: 1px solid #e0d8cc; border-radius: 16px; padding: 24px 20px; max-width: 360px; width: 100%; box-shadow: 0 16px 48px rgba(0,0,0,0.15); transform: translateY(16px); transition: transform 0.2s; }
+.overlay.active .dialog { transform: translateY(0); }
+.dialog-title { font-size: 17px; font-weight: 800; color: #1a1a1a; margin-bottom: 8px; }
+.dialog-body { font-size: 13px; color: #4a4a4a; margin-bottom: 20px; line-height: 1.5; }
+.dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dialog-cancel { padding: 11px; background-color: #f9f6f1; border: 1px solid #e0d8cc; border-radius: 8px; color: #8a8070; font-size: 13px; font-weight: 700; cursor: pointer; }
+.dialog-cancel:hover { border-color: #8a8070; color: #1a1a1a; }
+.dialog-confirm { padding: 11px; background-color: #1a7a6e; border: none; border-radius: 8px; color: #ffffff; font-size: 13px; font-weight: 800; cursor: pointer; }
+.dialog-confirm:hover { background-color: #15695e; }
 
-/* Daily Assignment Panel */
-.daily-assign-section { margin-bottom:14px; border:1px solid #e0d8cc; border-radius:12px; overflow:hidden; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
-.daily-assign-toggle { width:100%; background:none; border:none; padding:12px 16px; display:flex; align-items:center; gap:8px; cursor:pointer; font-size:11px; font-weight:800; color:#4a4a4a; text-transform:uppercase; letter-spacing:0.08em; text-align:left; }
-.daily-assign-toggle:hover { background:#f9f6f1; }
-.daily-assign-body { padding:0 14px 14px; }
-.da-col { display:flex; flex-direction:column; gap:12px; }
-.da-block { background:#f9f6f1; border-radius:8px; padding:10px 12px; }
-.da-block-title { font-size:10px; font-weight:800; color:#8a8070; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px; }
-.da-list { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; min-height:24px; }
-.da-add-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-.da-input { flex:1; min-width:80px; background:#fff; border:1px solid #e0d8cc; border-radius:6px; padding:6px 10px; color:#1a1a1a; font-size:12px; font-weight:600; outline:none; }
-.da-input:focus { border-color:#1a7a6e; }
+.toast { position: fixed; bottom: 24px; right: 24px; background-color: #1a1a1a; border-radius: 10px; padding: 11px 16px; font-size: 12px; color: #ffffff; font-weight: 700; z-index: 200; transform: translateY(20px); opacity: 0; transition: all 0.25s; pointer-events: none; max-width: 280px; }
+.toast.show { transform: translateY(0); opacity: 1; }
 
-/* Daily info grid */
-.daily-info-grid { display:flex; flex-direction:column; gap:6px; }
-.daily-info-row { display:flex; align-items:center; gap:10px; }
-.daily-info-row label { font-size:10px; font-weight:700; color:#8a8070; text-transform:uppercase; letter-spacing:0.1em; min-width:90px; flex-shrink:0; }
-.daily-info-input { flex:1; background-color:#f9f6f1; border:1px solid #e0d8cc; border-radius:6px; padding:7px 10px; color:#1a1a1a; font-size:13px; outline:none; font-weight:600; }
-.daily-info-input:focus { border-color:#1a7a6e; background-color:#fff; }
-
-/* PTO chips */
-.pto-chip { background-color:#f3ede4; border:1px solid #e0d8cc; border-radius:20px; padding:5px 12px; font-size:12px; color:#4a4a4a; display:flex; align-items:center; gap:6px; }
-.pto-status { font-size:9px; font-weight:800; padding:2px 6px; border-radius:10px; text-transform:uppercase; }
-.pto-status.PTO { background-color:rgba(26,95,138,0.1); color:#1a5f8a; }
-.pto-status.Flex { background-color:rgba(26,122,110,0.1); color:#1a7a6e; }
-.pto-status.LOA { background-color:rgba(184,125,26,0.1); color:#b87d1a; }
-.pto-status.Out { background-color:rgba(192,57,43,0.1); color:#c0392b; }
-.pto-status.Apt { background-color:rgba(122,63,160,0.1); color:#7a3fa0; }
-
-/* Precepting chips */
-.precept-chip { background-color:#f3ede4; border:1px solid #e0d8cc; border-radius:20px; padding:5px 12px; font-size:12px; color:#4a4a4a; display:flex; align-items:center; gap:6px; }
-.precept-arrow { color:#8a8070; font-weight:700; }
-
-.handoff-section { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:12px; padding:14px 16px; margin-bottom:14px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
-.handoff-preview { font-size:12px; color:#4a4a4a; background-color:#f9f6f1; border-radius:8px; padding:10px 12px; margin-top:8px; font-family:monospace; line-height:1.6; white-space:pre-wrap; border:1px solid #e0d8cc; }
-.copy-handoff-btn { margin-top:10px; background-color:rgba(26,95,138,0.1); border:1px solid rgba(26,95,138,0.3); color:#1a5f8a; font-size:11px; font-weight:700; padding:7px 14px; border-radius:8px; cursor:pointer; }
-.copy-handoff-btn:hover { background-color:#1a5f8a; color:#ffffff; }
-
-.share-lineup-section { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:12px; overflow:hidden; margin-bottom:14px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
-.share-lineup-header { padding:12px 16px; border-bottom:1px solid #e0d8cc; display:flex; align-items:center; justify-content:space-between; }
-.share-lineup-preview { padding:12px 16px; font-size:13px; color:#4a4a4a; line-height:1.6; font-weight:500; }
-.log-section { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:12px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
-.log-header { padding:12px 16px; border-bottom:1px solid #e0d8cc; display:flex; align-items:center; justify-content:space-between; }
-.copy-log-btn { font-size:10px; color:#8a8070; background:none; border:1px solid #e0d8cc; padding:4px 10px; border-radius:6px; cursor:pointer; font-weight:600; }
-.copy-log-btn:hover { border-color:rgba(26,122,110,0.3); color:#1a7a6e; }
-.log-list { max-height:200px; overflow-y:auto; padding:6px 0; }
-.log-list::-webkit-scrollbar { width:4px; }
-.log-list::-webkit-scrollbar-thumb { background-color:#e0d8cc; border-radius:2px; }
-.log-entry { padding:7px 16px; display:flex; align-items:baseline; gap:10px; border-bottom:1px solid #f3ede4; }
-.log-entry:last-child { border-bottom:none; }
-.log-time { font-size:10px; color:#8a8070; white-space:nowrap; min-width:52px; font-weight:600; font-variant-numeric:tabular-nums; }
-.log-event { font-size:12px; color:#4a4a4a; line-height:1.4; }
-.log-event strong { color:#1a7a6e; font-weight:700; }
-.log-event .ev-avail { color:#1a5f8a; }
-.log-event .ev-lunch { color:#7a3fa0; }
-.log-event .ev-auto { color:#b87d1a; }
-.log-event .ev-back { color:#b87d1a; }
-.log-event .ev-credit { color:#b87d1a; }
-.log-empty { padding:20px 16px; font-size:11px; color:#8a8070; text-align:center; }
-
-.overlay { position:fixed; inset:0; background-color:rgba(26,20,14,0.5); z-index:100; display:flex; align-items:center; justify-content:center; padding:24px; opacity:0; pointer-events:none; transition:opacity 0.2s; }
-.overlay.active { opacity:1; pointer-events:all; }
-.dialog { background-color:#ffffff; border:1px solid #e0d8cc; border-radius:16px; padding:24px 20px; max-width:360px; width:100%; box-shadow:0 16px 48px rgba(0,0,0,0.15); transform:translateY(16px); transition:transform 0.2s; }
-.overlay.active .dialog { transform:translateY(0); }
-.dialog-title { font-size:17px; font-weight:800; color:#1a1a1a; margin-bottom:8px; }
-.dialog-body { font-size:13px; color:#4a4a4a; margin-bottom:20px; line-height:1.5; }
-.dialog-body strong { color:#1a7a6e; }
-.dialog-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.dialog-cancel { padding:11px; background-color:#f9f6f1; border:1px solid #e0d8cc; border-radius:8px; color:#8a8070; font-size:13px; font-weight:700; cursor:pointer; }
-.dialog-cancel:hover { border-color:#8a8070; color:#1a1a1a; }
-.dialog-confirm { padding:11px; background-color:#1a7a6e; border:none; border-radius:8px; color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; }
-.dialog-confirm:hover { background-color:#15695e; }
-
-.toast { position:fixed; bottom:24px; right:24px; background-color:#1a1a1a; border-radius:10px; padding:11px 16px; font-size:12px; color:#ffffff; font-weight:700; z-index:200; transform:translateY(20px); opacity:0; transition:all 0.25s; pointer-events:none; max-width:280px; }
-.toast.show { transform:translateY(0); opacity:1; }
+/* Responsive niceties */
+@media (max-width: 420px) {
+  .mode-btns { grid-template-columns: 1fr; }
+  .lunch-grid { grid-template-columns: repeat(3, 1fr); }
+}
 </style>
 
-</head>
-<body>
-
-<!-- ═══════════════════════════════════════════
-     FIREBASE SETUP OVERLAY
-     Users see this once. Config is saved to localStorage.
-════════════════════════════════════════════ -->
-
+<!-- =========================
+     SETUP OVERLAY (CLEANED)
+========================= -->
 <div class="setup-overlay hidden" id="setupOverlay">
   <div class="setup-card">
     <div class="setup-logo">PODs/<span>Lineup</span></div>
-    <div class="setup-sub">One-time Firebase setup. Takes about 5 minutes. Only the person who sets this up needs an account — everyone else just opens the file.</div>
+    <div class="setup-sub">
+      One-time Firebase setup. Only the person who sets this up needs an account — everyone else just opens the file.
+    </div>
 
-```
-<div class="setup-section">
-  <div class="setup-section-title"><span class="setup-section-num">1</span> Create a free Firebase project</div>
-  <div class="setup-instructions">
-    <ol>
-      <li>Go to <a href="https://urldefense.com/v3/__https://console.firebase.google.com__;!!IZ3lH8c!wdElc2zdap7z70lV6B8MDZxYrQ1lMVpf-8b2TJht9PtTF-vgN8tGQu7zvENR03xqaCIcMhTCFPegG9U$" target="_blank">console.firebase.google.com</a></li>
-      <li>Click <code>Add project</code> → name it (e.g. <code>ccmu1-lineup</code>) → continue through defaults</li>
-      <li>In the left sidebar: <code>Build → Realtime Database → Create database</code></li>
-      <li>Choose <code>Start in test mode</code> → enable</li>
-      <li>Back in left sidebar: <code>Project Overview ⚙️ → Project settings</code></li>
-      <li>Scroll to <code>Your apps</code> → click the <code>&lt;/&gt;</code> web icon → register app → copy the <code>firebaseConfig</code> object values below</li>
-    </ol>
+    <div class="setup-section">
+      <div class="setup-section-title"><span class="setup-section-num">1</span> Create a free Firebase project</div>
+      <div class="setup-instructions">
+        <ol>
+          <li>Go to <a href="https://console.firebase.google.com" target="_blank" rel="noopener">console.firebase.google.com</a></li>
+          <li>Click <code>Add project</code> → name it (e.g. <code>ccmu1-lineup</code>) → continue through defaults</li>
+          <li>Left sidebar: <code>Build → Realtime Database → Create database</code></li>
+          <li>Choose <code>Start in test mode</code> → enable</li>
+          <li>Left sidebar: <code>Project Overview ⚙️ → Project settings</code></li>
+          <li>Scroll to <code>Your apps</code> → click the <code></code> (web) icon → register app → copy the <code>firebaseConfig</code> values</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="setup-section">
+      <div class="setup-section-title"><span class="setup-section-num">2</span> Paste your Firebase config</div>
+      <div class="setup-field">
+        <label>API Key</label>
+        <input class="setup-input" id="cfg_apiKey" placeholder="AIzaSy..." />
+      </div>
+      <div class="setup-field">
+        <label>Auth Domain</label>
+        <input class="setup-input" id="cfg_authDomain" placeholder="your-project.firebaseapp.com" />
+      </div>
+      <div class="setup-field">
+        <label>Database URL</label>
+        <input class="setup-input" id="cfg_databaseURL" placeholder="https://your-project-default-rtdb.firebaseio.com" />
+      </div>
+      <div class="setup-field">
+        <label>Project ID</label>
+        <input class="setup-input" id="cfg_projectId" placeholder="your-project-id" />
+      </div>
+    </div>
+
+    <div class="setup-section">
+      <div class="setup-section-title"><span class="setup-section-num">3</span> Set a room code for your unit</div>
+      <div class="setup-instructions">
+        This is a short code shared among your team. Anyone who enters the same code sees the same live lineup.
+        Keep it simple — no spaces. Example: <code>CCMU1</code> or <code>SHIFT3</code>
+      </div>
+      <div class="setup-room-row" style="margin-top:10px">
+        <input class="setup-room-input" id="cfg_room" placeholder="Enter room code" maxlength="20" />
+        <button class="gen-room-btn" onclick="genRoom()">Generate</button>
+      </div>
+    </div>
+
+    <div id="setupError" class="setup-error"></div>
+
+    <button class="setup-connect-btn" onclick="connectFirebase()">Connect & Open App</button>
+
+    <div class="setup-divider" style="display:flex;align-items:center;gap:12px;margin:20px 0">
+      <div style="flex:1;height:1px;background-color:#e0d8cc"></div>
+      <div class="setup-divider-text" style="font-size:11px;color:#8a8070;font-weight:600">or</div>
+      <div style="flex:1;height:1px;background-color:#e0d8cc"></div>
+    </div>
+
+    <button class="setup-offline-btn" onclick="useOffline()">Use offline (this device only, no sync)</button>
   </div>
 </div>
 
-<div class="setup-section">
-  <div class="setup-section-title"><span class="setup-section-num">2</span> Paste your Firebase config</div>
-  <div class="setup-field">
-    <label>API Key</label>
-    <input class="setup-input" id="cfg_apiKey" placeholder="AIzaSy...">
-  </div>
-  <div class="setup-field">
-    <label>Auth Domain</label>
-    <input class="setup-input" id="cfg_authDomain" placeholder="your-project.firebaseapp.com">
-  </div>
-  <div class="setup-field">
-    <label>Database URL</label>
-    <input class="setup-input" id="cfg_databaseURL" placeholder="https://urldefense.com/v3/__https://your-project-default-rtdb.firebaseio.com__;!!IZ3lH8c!wdElc2zdap7z70lV6B8MDZxYrQ1lMVpf-8b2TJht9PtTF-vgN8tGQu7zvENR03xqaCIcMhTCpQrQQY4$">
-  </div>
-  <div class="setup-field">
-    <label>Project ID</label>
-    <input class="setup-input" id="cfg_projectId" placeholder="your-project-id">
-  </div>
-</div>
-
-<div class="setup-section">
-  <div class="setup-section-title"><span class="setup-section-num">3</span> Set a room code for your unit</div>
-  <div class="setup-instructions">
-    This is a short code shared among your team. Anyone who enters the same code sees the same live lineup. Keep it simple — no spaces. Example: <code>CCMU1</code> or <code>SHIFT3</code>
-  </div>
-  <div class="setup-room-row" style="margin-top:10px">
-    <input class="setup-room-input" id="cfg_room" placeholder="Enter room code" maxlength="20">
-    <button class="gen-room-btn" onclick="genRoom()">Generate</button>
-  </div>
-</div>
-
-<div id="setupError" class="setup-error"></div>
-<button class="setup-connect-btn" onclick="connectFirebase()">Connect & Open App</button>
-
-<div class="setup-divider">
-  <div class="setup-divider-line"></div>
-  <div class="setup-divider-text">or</div>
-  <div class="setup-divider-line"></div>
-</div>
-<button class="setup-offline-btn" onclick="useOffline()">Use offline (this device only, no sync)</button>
-```
-
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════
+<!-- =========================
      MAIN APP
-════════════════════════════════════════════ -->
-
+========================= -->
 <div class="app">
+  <!-- Sync bar -->
   <div class="sync-bar" id="syncBar">
     <div class="sync-dot" id="syncDot"></div>
     <span class="sync-label" id="syncLabel">Not connected</span>
     <span class="sync-room" id="syncRoom"></span>
-    <span class="sync-users" id="syncUsers" style="display:none"></span>
+    <span class="sync-users" id="syncUsers"></span>
     <button style="background:none;border:1px solid #e0d8cc;color:#8a8070;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;cursor:pointer;margin-left:auto" onclick="openSetup()">⚙ Config</button>
   </div>
 
@@ -459,11 +685,12 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
       <div id="modeBadge"></div>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-      <div class="date-block" id="dateBlock"></div>
+      <div class="date-block" id="dateBlock" style="font-size:11px;color:#8a8070;line-height:1.6;font-variant-numeric:tabular-nums;"></div>
       <button class="switch-btn" onclick="confirmSwitchMode()" id="switchBtn" style="display:none">Switch mode</button>
     </div>
   </header>
 
+  <!-- Mode Chooser -->
   <div id="modeSelectorScreen">
     <div class="mode-selector">
       <div class="mode-selector-title">What kind of day is it?</div>
@@ -483,8 +710,10 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
     </div>
   </div>
 
+  <!-- PODs Screen -->
   <div id="podsScreen" style="display:none">
     <div class="coverage-warn" id="podsCoverageWarn">⚠️ <span id="podsCoverageWarnText"></span></div>
+
     <div class="timer-section">
       <span class="timer-label" id="timerLabel">Auto-rotate</span>
       <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
@@ -492,18 +721,22 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
       <button class="timer-btn" id="timerToggle">Pause</button>
       <button class="timer-btn" id="timerReset">Reset</button>
     </div>
+
     <div class="manual-start-row">
       <span class="manual-start-label">Started at</span>
-      <input class="manual-start-input" id="manualStartInput" placeholder="e.g. 8:47a" maxlength="8">
+      <input class="manual-start-input" id="manualStartInput" placeholder="e.g. 8:47a" maxlength="8" />
       <button class="manual-start-btn" onclick="applyManualStart()">Set</button>
     </div>
+
     <div class="pause-banner" id="pauseBanner" style="display:none">
       <span id="pauseBannerText"></span>
     </div>
+
     <div class="lunch-slots">
       <span class="section-label">Lunch Plan</span>
       <div class="lunch-grid" id="podsLunchGrid"></div>
     </div>
+
     <div class="absent-section" id="absentSection" style="display:none">
       <button class="absent-toggle" onclick="toggleAbsentView()">
         <span id="absentToggleIcon">▸</span>
@@ -511,25 +744,32 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
       </button>
       <div class="absent-list" id="absentList" style="display:none"></div>
     </div>
+
     <div class="lineup-header">
       <span class="section-label" style="margin:0">Current Lineup</span>
       <span class="rn-count" id="rnCount">0 RNs</span>
     </div>
+
     <div id="lineupContainer"></div>
+
     <div class="lineup-snapshot" id="lineupSnapshot" style="display:none">
       <div class="snapshot-text" id="snapshotText"></div>
       <button class="copy-snap-btn" onclick="copySnapshot()">Copy lineup</button>
     </div>
+
     <button class="call-btn" id="callBtn" onclick="handleTookCall()">
       <span>📞 Took a Call</span>
       <span class="front-name" id="callBtnName"></span>
     </button>
+
     <div class="secondary-actions">
       <button class="sec-btn" onclick="manualRotate()">↻ Rotate</button>
       <button class="sec-btn" onclick="openPodsResetDialog()">⟲ Reset</button>
+      <button class="sec-btn" onclick="openAddEveningHint()">Eve RN?</button>
     </div>
+
     <div class="add-section">
-      <input class="add-input" id="addInput" placeholder="Type your name to join..." maxlength="32" onkeydown="if(event.key==='Enter') addRN()">
+      <input class="add-input" id="addInput" placeholder="Type your name to join..." maxlength="32" onkeydown="if(event.key==='Enter') addRN()" />
       <select class="add-type-select" id="addType">
         <option value="standard">Standard</option>
         <option value="evening">Evening</option>
@@ -537,157 +777,173 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
       <button class="add-btn" onclick="addRN()">Join</button>
     </div>
 
-```
-<!-- Daily Assignment Panel -->
-<div class="daily-assign-section" id="dailyAssignSection">
-  <button class="daily-assign-toggle" onclick="toggleDailyAssign()">
-    <span id="dailyAssignIcon">▸</span>
-    <span>Daily Assignment</span>
-  </button>
-  <div class="daily-assign-body" id="dailyAssignBody" style="display:none">
-    <div class="da-col">
-      <div class="da-block">
-        <div class="da-block-title">PTO / Flex / CM Coverage</div>
-        <div class="da-list" id="daPTOList"><span class="cm-empty">None</span></div>
-        <div class="da-add-row">
-          <input class="da-input" id="daPTOName" placeholder="Name..." maxlength="32">
-          <select class="add-type-select" id="daPTOStatus">
-            <option value="PTO">PTO</option>
-            <option value="Flex">Flex</option>
-            <option value="LOA">LOA</option>
-            <option value="Out">Out</option>
-            <option value="CM">CM</option>
-          </select>
-          <input class="da-input" id="daPTONote" placeholder="Note..." maxlength="32" style="flex:2">
-          <button class="add-cm-btn" onclick="addDAPTO()">Add</button>
-        </div>
-      </div>
-      <div class="da-block">
-        <div class="da-block-title">Away / Unavailable Time</div>
-        <div class="da-list" id="daAwayList"><span class="cm-empty">None</span></div>
-        <div class="da-add-row">
-          <input class="da-input" id="daAwayName" placeholder="Name..." maxlength="32">
-          <select class="add-type-select" id="daAwayReason">
-            <option value="Apt">Apt</option>
-            <option value="MSL">MSL</option>
-            <option value="Fingerprints">Fingerprints</option>
-            <option value="Meeting">Meeting</option>
-            <option value="CCR">CCR</option>
-            <option value="Other">Other</option>
-          </select>
-          <input class="da-input" id="daAwayTime" placeholder="Time (e.g. 9a)" maxlength="16" style="flex:1">
-          <button class="add-cm-btn" onclick="addDAAway()">Add</button>
-        </div>
-      </div>
-      <div class="da-block">
-        <div class="da-block-title">Precepting</div>
-        <div class="da-list" id="daPreceptList"><span class="cm-empty">None</span></div>
-        <div class="da-add-row">
-          <input class="da-input" id="daPreceptor" placeholder="Preceptor..." maxlength="32">
-          <span style="color:#8a8070;font-size:12px;font-weight:700;flex-shrink:0;align-self:center">→</span>
-          <input class="da-input" id="daPreceptee" placeholder="Orientee..." maxlength="32">
-          <button class="add-cm-btn" onclick="addDAPrecept()">Add</button>
+    <!-- Daily Assignment Panel (PODs) -->
+    <div class="daily-assign-section" id="dailyAssignSection">
+      <button class="daily-assign-toggle" onclick="toggleDailyAssign()">
+        <span id="dailyAssignIcon">▸</span>
+        <span>Daily Assignment</span>
+      </button>
+      <div class="daily-assign-body" id="dailyAssignBody" style="display:none">
+        <div class="da-col">
+
+          <div class="da-block">
+            <div class="da-block-title">PTO / Flex / CM Coverage</div>
+            <div class="da-list" id="daPTOList"><span class="cm-empty">None</span></div>
+            <div class="da-add-row">
+              <input class="da-input" id="daPTOName" placeholder="Name..." maxlength="32" />
+              <select class="add-type-select" id="daPTOStatus">
+                <option value="PTO">PTO</option>
+                <option value="Flex">Flex</option>
+                <option value="LOA">LOA</option>
+                <option value="Out">Out</option>
+                <option value="CM">CM</option>
+              </select>
+              <input class="da-input" id="daPTONote" placeholder="Note..." maxlength="32" style="flex:2" />
+              <button class="add-cm-btn" onclick="addDAPTO()">Add</button>
+            </div>
+          </div>
+
+          <div class="da-block">
+            <div class="da-block-title">Away / Unavailable Time</div>
+            <div class="da-list" id="daAwayList"><span class="cm-empty">None</span></div>
+            <div class="da-add-row">
+              <input class="da-input" id="daAwayName" placeholder="Name..." maxlength="32" />
+              <select class="add-type-select" id="daAwayReason">
+                <option value="Apt">Apt</option>
+                <option value="MSL">MSL</option>
+                <option value="Fingerprints">Fingerprints</option>
+                <option value="Meeting">Meeting</option>
+                <option value="CCR">CCR</option>
+                <option value="Other">Other</option>
+              </select>
+              <input class="da-input" id="daAwayTime" placeholder="Time (e.g. 9a)" maxlength="16" style="flex:1" />
+              <button class="add-cm-btn" onclick="addDAAway()">Add</button>
+            </div>
+          </div>
+
+          <div class="da-block">
+            <div class="da-block-title">Precepting</div>
+            <div class="da-list" id="daPreceptList"><span class="cm-empty">None</span></div>
+            <div class="da-add-row">
+              <input class="da-input" id="daPreceptor" placeholder="Preceptor..." maxlength="32" />
+              <span style="color:#8a8070;font-size:12px;font-weight:700;flex-shrink:0;align-self:center">→</span>
+              <input class="da-input" id="daPreceptee" placeholder="Orientee..." maxlength="32" />
+              <button class="add-cm-btn" onclick="addDAPrecept()">Add</button>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
   </div>
-</div>
-```
 
-  </div>
-
+  <!-- Available Coverage Screen -->
   <div id="availScreen" style="display:none">
     <div class="coverage-warn" id="availCoverageWarn">⚠️ <span id="availCoverageWarnText"></span></div>
 
-```
-<!-- Now Covering -->
-<div class="avail-header-bar">
-  <span class="avail-current-label">Now covering</span>
-  <span class="avail-current-name" id="availCurrentName">—</span>
-  <span class="avail-countdown" id="availCountdown"></span>
-</div>
+    <!-- Now Covering -->
+    <div class="avail-header-bar">
+      <span class="avail-current-label">Now covering</span>
+      <span class="avail-current-name" id="availCurrentName">—</span>
+      <span class="avail-countdown" id="availCountdown"></span>
+    </div>
 
-<!-- Daily Info -->
-<div class="cm-section">
-  <span class="section-label" style="margin-bottom:8px">Daily Info</span>
-  <div class="daily-info-grid" id="dailyInfoGrid">
-    <div class="daily-info-row"><label>MSL</label><input class="daily-info-input" id="di_msl" placeholder="—" onchange="saveDailyInfo()"></div>
-    <div class="daily-info-row"><label>Fingerprints</label><input class="daily-info-input" id="di_fingerprints" placeholder="—" onchange="saveDailyInfo()"></div>
-    <div class="daily-info-row"><label>Apt Time</label><input class="daily-info-input" id="di_apt" placeholder="—" onchange="saveDailyInfo()"></div>
-    <div class="daily-info-row"><label>Meetings</label><input class="daily-info-input" id="di_meetings" placeholder="—" onchange="saveDailyInfo()"></div>
-    <div class="daily-info-row"><label>Other</label><input class="daily-info-input" id="di_other" placeholder="—" onchange="saveDailyInfo()"></div>
-  </div>
-</div>
+    <!-- Daily Info -->
+    <div class="cm-section">
+      <span class="section-label" style="margin-bottom:8px">Daily Info</span>
+      <div class="daily-info-grid" id="dailyInfoGrid" style="display:flex;flex-direction:column;gap:6px">
+        <div class="daily-info-row" style="display:flex;align-items:center;gap:10px">
+          <label style="font-size:10px;font-weight:700;color:#8a8070;text-transform:uppercase;letter-spacing:0.1em;min-width:90px">MSL</label>
+          <input class="daily-info-input" id="di_msl" placeholder="—" onchange="saveDailyInfo()" />
+        </div>
+        <div class="daily-info-row" style="display:flex;align-items:center;gap:10px">
+          <label style="font-size:10px;font-weight:700;color:#8a8070;text-transform:uppercase;letter-spacing:0.1em;min-width:90px">Fingerprints</label>
+          <input class="daily-info-input" id="di_fingerprints" placeholder="—" onchange="saveDailyInfo()" />
+        </div>
+        <div class="daily-info-row" style="display:flex;align-items:center;gap:10px">
+          <label style="font-size:10px;font-weight:700;color:#8a8070;text-transform:uppercase;letter-spacing:0.1em;min-width:90px">Apt Time</label>
+          <input class="daily-info-input" id="di_apt" placeholder="—" onchange="saveDailyInfo()" />
+        </div>
+        <div class="daily-info-row" style="display:flex;align-items:center;gap:10px">
+          <label style="font-size:10px;font-weight:700;color:#8a8070;text-transform:uppercase;letter-spacing:0.1em;min-width:90px">Meetings</label>
+          <input class="daily-info-input" id="di_meetings" placeholder="—" onchange="saveDailyInfo()" />
+        </div>
+        <div class="daily-info-row" style="display:flex;align-items:center;gap:10px">
+          <label style="font-size:10px;font-weight:700;color:#8a8070;text-transform:uppercase;letter-spacing:0.1em;min-width:90px">Other</label>
+          <input class="daily-info-input" id="di_other" placeholder="—" onchange="saveDailyInfo()" />
+        </div>
+      </div>
+    </div>
 
-<!-- PTO / Flex / Out -->
-<div class="cm-section">
-  <span class="section-label" style="margin-bottom:6px">PTO / Flex / Out</span>
-  <div class="cm-list" id="ptoList"><span class="cm-empty">None</span></div>
-  <div class="add-cm-row" style="flex-wrap:wrap;gap:6px">
-    <input class="add-cm-input" id="ptoName" placeholder="RN name..." maxlength="32" style="flex:2;min-width:100px">
-    <select class="add-type-select" id="ptoStatus" style="flex:1;min-width:80px">
-      <option value="PTO">PTO</option>
-      <option value="Flex">Flex</option>
-      <option value="LOA">LOA</option>
-      <option value="Out">Out</option>
-      <option value="Apt">Apt</option>
-    </select>
-    <input class="add-cm-input" id="ptoNote" placeholder="Note (optional)" maxlength="32" style="flex:2;min-width:100px">
-    <button class="add-cm-btn" onclick="addPTO()">Add</button>
-  </div>
-</div>
+    <!-- PTO / Flex / Out -->
+    <div class="cm-section">
+      <span class="section-label" style="margin-bottom:6px">PTO / Flex / Out</span>
+      <div class="cm-list" id="ptoList"><span class="cm-empty">None</span></div>
+      <div class="add-cm-row" style="flex-wrap:wrap;gap:6px">
+        <input class="add-cm-input" id="ptoName" placeholder="RN name..." maxlength="32" style="flex:2;min-width:100px" />
+        <select class="add-type-select" id="ptoStatus" style="flex:1;min-width:80px">
+          <option value="PTO">PTO</option>
+          <option value="Flex">Flex</option>
+          <option value="LOA">LOA</option>
+          <option value="Out">Out</option>
+          <option value="Apt">Apt</option>
+        </select>
+        <input class="add-cm-input" id="ptoNote" placeholder="Note (optional)" maxlength="32" style="flex:2;min-width:100px" />
+        <button class="add-cm-btn" onclick="addPTO()">Add</button>
+      </div>
+    </div>
 
-<!-- Precepting -->
-<div class="cm-section">
-  <span class="section-label" style="margin-bottom:6px">Precepting</span>
-  <div class="cm-list" id="preceptList"><span class="cm-empty">None</span></div>
-  <div class="add-cm-row">
-    <input class="add-cm-input" id="preceptor" placeholder="Preceptor..." maxlength="32" style="flex:1">
-    <span style="color:#8a8070;font-size:12px;font-weight:700;flex-shrink:0;align-self:center">→</span>
-    <input class="add-cm-input" id="preceptee" placeholder="Orientee..." maxlength="32" style="flex:1">
-    <button class="add-cm-btn" onclick="addPrecepting()">Add</button>
-  </div>
-</div>
+    <!-- Precepting -->
+    <div class="cm-section">
+      <span class="section-label" style="margin-bottom:6px">Precepting</span>
+      <div class="cm-list" id="preceptList"><span class="cm-empty">None</span></div>
+      <div class="add-cm-row">
+        <input class="add-cm-input" id="preceptor" placeholder="Preceptor..." maxlength="32" style="flex:1" />
+        <span style="color:#8a8070;font-size:12px;font-weight:700;flex-shrink:0;align-self:center">→</span>
+        <input class="add-cm-input" id="preceptee" placeholder="Orientee..." maxlength="32" style="flex:1" />
+        <button class="add-cm-btn" onclick="addPrecepting()">Add</button>
+      </div>
+    </div>
 
-<!-- Case Management -->
-<div class="cm-section">
-  <span class="section-label" style="margin-bottom:6px">Case Management Today</span>
-  <div class="cm-list" id="cmList"><span class="cm-empty">None assigned</span></div>
-  <div class="add-cm-row">
-    <input class="add-cm-input" id="cmInput" placeholder="Add CM RN name..." maxlength="32" onkeydown="if(event.key==='Enter') addCM()">
-    <button class="add-cm-btn" onclick="addCM()">Add</button>
-  </div>
-</div>
+    <!-- Case Management -->
+    <div class="cm-section">
+      <span class="section-label" style="margin-bottom:6px">Case Management Today</span>
+      <div class="cm-list" id="cmList"><span class="cm-empty">None assigned</span></div>
+      <div class="add-cm-row">
+        <input class="add-cm-input" id="cmInput" placeholder="Add CM RN name..." maxlength="32" onkeydown="if(event.key==='Enter') addCM()" />
+        <button class="add-cm-btn" onclick="addCM()">Add</button>
+      </div>
+    </div>
 
-<!-- Coverage Schedule -->
-<div class="avail-blocks-section">
-  <div class="lineup-header">
-    <span class="section-label" style="margin:0">Coverage Schedule</span>
-    <button class="sec-btn" style="padding:5px 12px;font-size:10px" onclick="openAvailResetDialog()">⟲ Reset</button>
-  </div>
-  <div class="avail-block-list" id="availBlockList"></div>
-  <div class="add-block-section">
-    <span class="section-label" style="margin-bottom:8px">Add Coverage Block</span>
-    <div class="add-block-row">
-      <input class="block-time-input" id="blockStart" placeholder="9a" maxlength="8">
-      <span style="color:#8a8070;font-size:12px;font-weight:700;flex-shrink:0">to</span>
-      <input class="block-time-input" id="blockEnd" placeholder="10a" maxlength="8">
-      <input class="block-name-input" id="blockName" placeholder="RN name or All Watch" maxlength="32" onkeydown="if(event.key==='Enter') addBlock()">
-      <button class="add-block-btn" onclick="addBlock()">Add</button>
+    <!-- Coverage Schedule -->
+    <div class="avail-blocks-section">
+      <div class="lineup-header">
+        <span class="section-label" style="margin:0">Coverage Schedule</span>
+        <button class="sec-btn" style="padding:5px 12px;font-size:10px" onclick="openAvailResetDialog()">⟲ Reset</button>
+      </div>
+      <div class="avail-block-list" id="availBlockList"></div>
+
+      <div class="add-block-section">
+        <span class="section-label" style="margin-bottom:8px">Add Coverage Block</span>
+        <div class="add-block-row">
+          <input class="block-time-input" id="blockStart" placeholder="9a" maxlength="8" />
+          <span style="color:#8a8070;font-size:12px;font-weight:700;flex-shrink:0">to</span>
+          <input class="block-time-input" id="blockEnd" placeholder="10a" maxlength="8" />
+          <input class="block-name-input" id="blockName" placeholder="RN name or All Watch" maxlength="32" onkeydown="if(event.key==='Enter') addBlock()" />
+          <button class="add-block-btn" onclick="addBlock()">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Handoff -->
+    <div class="handoff-section">
+      <span class="section-label" style="margin-bottom:4px">Handoff Message</span>
+      <div class="handoff-preview" id="handoffPreview">No data yet.</div>
+      <button class="copy-handoff-btn" onclick="copyHandoff()">Copy handoff message</button>
     </div>
   </div>
-</div>
 
-<!-- Handoff -->
-<div class="handoff-section">
-  <span class="section-label" style="margin-bottom:4px">Handoff Message</span>
-  <div class="handoff-preview" id="handoffPreview">No data yet.</div>
-  <button class="copy-handoff-btn" onclick="copyHandoff()">Copy handoff message</button>
-</div>
-```
-
-  </div>
-
+  <!-- Activity Log -->
   <div class="log-section" id="logSection" style="display:none">
     <div class="log-header">
       <span class="section-label" style="margin:0">Activity Log</span>
@@ -697,6 +953,7 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
   </div>
 </div>
 
+<!-- Overlay + Toast -->
 <div class="overlay" id="overlay">
   <div class="dialog">
     <div class="dialog-title" id="dialogTitle">Confirm</div>
@@ -707,829 +964,836 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
     </div>
   </div>
 </div>
+
 <div class="toast" id="toast"></div>
 
 <!-- Firebase SDK (compat — globally scoped, no module needed) -->
-
-<script src="https://urldefense.com/v3/__https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js__;!!IZ3lH8c!wdElc2zdap7z70lV6B8MDZxYrQ1lMVpf-8b2TJht9PtTF-vgN8tGQu7zvENR03xqaCIcMhTCGs-YaP4$"></script>
-
-<script src="https://urldefense.com/v3/__https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js__;!!IZ3lH8c!wdElc2zdap7z70lV6B8MDZxYrQ1lMVpf-8b2TJht9PtTF-vgN8tGQu7zvENR03xqaCIcMhTCE7uvSiY$"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
 <script>
+/* ============================================================================
+   CONFIG, STATE, AND INITIALIZATION (PART 1 OF JS)
+   - All 'urldefense.com' URLs removed
+   - No frame-busting or CSP that would block SharePoint/Teams
+   - No document.write
+=========================================================================== */
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-const LUNCH_PLAN_SLOTS=['~12:00','~12:15','~12:30','~12:45','~3:30'];
-const LUNCH_SLOT_TIMES=['12:00','12:15','12:30','12:45','3:30'];
-const LUNCH_DURATION=30*60,ROTATION_DURATION=30*60,CREDIT_MINIMUM=5*60;
-const CFG_KEY='pods_firebase_cfg';
+/* Constants */
+const LUNCH_PLAN_SLOTS = ['~12:00','~12:15','~12:30','~12:45','~3:30'];
+const LUNCH_SLOT_TIMES = ['12:00','12:15','12:30','12:45','3:30'];
+const LUNCH_DURATION = 30 * 60;
+const ROTATION_DURATION = 30 * 60;
+const CREDIT_MINIMUM = 5 * 60;
+const CFG_KEY = 'pods_firebase_cfg';
 
-// ─── State ────────────────────────────────────────────────────────────────────
-let mode=null,roster=[],absentRoster=[],rotationStartedAt=Date.now(),timerRunning=true;
-let pausedAt=null;           // epoch ms when timer was paused
-let coverStartedAt=null;     // epoch ms when position-2 started covering
-let coverSecsUsed=0;         // seconds position-2 has covered so far
-function getTimerSeconds(){return Math.max(0,ROTATION_DURATION-Math.floor((Date.now()-rotationStartedAt)/1000));}
-let timerInterval=null,lunchInterval=null,dragSrc=null,absentOpen=false;
-let availBlocks=[],cmRNs=[],availLunchRoster=[],log=[];
-let ptoList=[],preceptingList=[],dailyInfo={msl:'',fingerprints:'',apt:'',meetings:'',other:''};
-let daPTO=[],daAway=[],daPrecept=[];
-let availCountdownInterval=null,clockInterval=null;
+/* App state */
+let mode = null;
+let roster = [];
+let absentRoster = [];
+let rotationStartedAt = Date.now();
+let timerRunning = true;
+let pausedAt = null;
+let coverStartedAt = null;
+let coverSecsUsed = 0;
+let timerInterval = null, lunchInterval = null, dragSrc = null, absentOpen = false;
+let availBlocks = [], cmRNs = [], availLunchRoster = [], log = [];
+let ptoList = [], preceptingList = [], dailyInfo = { msl:'', fingerprints:'', apt:'', meetings:'', other:'' };
+let daPTO = [], daAway = [], daPrecept = [];
+let availCountdownInterval = null, clockInterval = null;
 
-// Firebase state
-let firebaseApp=null,db=null,dbRef=null,syncEnabled=false,roomCode=null;
-let remotePushPending=false,ignoreNextRemote=false,presenceRef=null;
-let connectedUsers=1;
+/* Firebase state */
+let firebaseApp = null, db = null, dbRef = null, syncEnabled = false, roomCode = null;
+let ignoreNextRemote = false, connectedUsers = 1;
 
-// ─── Setup / Config ──────────────────────────────────────────────────────────
-function loadConfig(){
-  try { return JSON.parse(localStorage.getItem(CFG_KEY)||'null'); }
+/* Helpers: local config */
+function loadConfig() {
+  try { return JSON.parse(localStorage.getItem(CFG_KEY) || 'null'); }
   catch { return null; }
 }
-function saveConfig(cfg){ localStorage.setItem(CFG_KEY,JSON.stringify(cfg)); }
+function saveConfig(cfg) {
+  localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+}
 
-window.genRoom=function(){
-  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code='';for(let i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];
-  document.getElementById('cfg_room').value=code;
+/* UI helpers */
+function setSyncUI(status, label, room) {
+  const dot = document.getElementById('syncDot');
+  const lbl = document.getElementById('syncLabel');
+  const rmEl = document.getElementById('syncRoom');
+  dot.className = 'sync-dot ' + (status==='connected' ? 'connected' : status==='connecting' ? 'connecting' : status==='error' ? 'error' : '');
+  lbl.className = 'sync-label ' + (status==='connected' ? 'connected' : status==='connecting' ? 'connecting' : status==='error' ? 'error' : '');
+  lbl.textContent = label;
+  rmEl.textContent = room ? ('Room: ' + room) : '';
+}
+
+/* Room code generator */
+window.genRoom = function () {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  document.getElementById('cfg_room').value = code;
 };
 
-window.openSetup=function(){
-  const cfg=loadConfig();
-  if(cfg){
-    document.getElementById('cfg_apiKey').value=cfg.apiKey||'';
-    document.getElementById('cfg_authDomain').value=cfg.authDomain||'';
-    document.getElementById('cfg_databaseURL').value=cfg.databaseURL||'';
-    document.getElementById('cfg_projectId').value=cfg.projectId||'';
-    document.getElementById('cfg_room').value=cfg.room||'';
+/* Open setup overlay (prefill from saved config, if any) */
+window.openSetup = function () {
+  const cfg = loadConfig();
+  if (cfg) {
+    document.getElementById('cfg_apiKey').value = cfg.apiKey || '';
+    document.getElementById('cfg_authDomain').value = cfg.authDomain || '';
+    document.getElementById('cfg_databaseURL').value = cfg.databaseURL || '';
+    document.getElementById('cfg_projectId').value = cfg.projectId || '';
+    document.getElementById('cfg_room').value = cfg.room || '';
   }
   document.getElementById('setupOverlay').classList.remove('hidden');
 };
 
-window.connectFirebase=async function(){
-  const apiKey=document.getElementById('cfg_apiKey').value.trim();
-  const authDomain=document.getElementById('cfg_authDomain').value.trim();
-  const databaseURL=document.getElementById('cfg_databaseURL').value.trim();
-  const projectId=document.getElementById('cfg_projectId').value.trim();
-  const room=document.getElementById('cfg_room').value.trim().toUpperCase().replace(/\s+/g,'');
-  const errEl=document.getElementById('setupError');
+/* Connect to Firebase (or show offline) */
+window.connectFirebase = async function () {
+  const apiKey = document.getElementById('cfg_apiKey').value.trim();
+  const authDomain = document.getElementById('cfg_authDomain').value.trim();
+  const databaseURL = document.getElementById('cfg_databaseURL').value.trim();
+  const projectId = document.getElementById('cfg_projectId').value.trim();
+  const room = document.getElementById('cfg_room').value.trim().toUpperCase().replace(/\s+/g, '');
+  const errEl = document.getElementById('setupError');
   errEl.classList.remove('visible');
 
-  if(!apiKey||!databaseURL||!projectId||!room){
-    errEl.textContent='Please fill in API Key, Database URL, Project ID, and a room code.';
-    errEl.classList.add('visible');return;
+  if (!apiKey || !databaseURL || !projectId || !room) {
+    errEl.textContent = 'Please fill in API Key, Database URL, Project ID, and a room code.';
+    errEl.classList.add('visible'); return;
   }
-  if(!databaseURL.includes('firebaseio.com')){
-    errEl.textContent='Database URL should end in .firebaseio.com';
-    errEl.classList.add('visible');return;
+  if (!databaseURL.includes('firebaseio.com')) {
+    errEl.textContent = 'Database URL should end in .firebaseio.com';
+    errEl.classList.add('visible'); return;
   }
 
-  const btn=document.querySelector('.setup-connect-btn');
-  btn.disabled=true;btn.textContent='Connecting…';
+  const btn = document.querySelector('.setup-connect-btn');
+  btn.disabled = true; btn.textContent = 'Connecting…';
 
   try {
-    const cfg={apiKey,authDomain,databaseURL,projectId,room};
+    const cfg = { apiKey, authDomain, databaseURL, projectId, room };
     await initFirebase(cfg);
     saveConfig(cfg);
     document.getElementById('setupOverlay').classList.add('hidden');
-    showToast('Connected to room '+room);
-    btn.disabled=false;btn.textContent='Connect & Open App';
-  } catch(e) {
-    errEl.textContent='Connection failed: '+e.message+'. Check your config and make sure the Realtime Database is enabled.';
+    showToast('Connected to room ' + room);
+    btn.disabled = false; btn.textContent = 'Connect & Open App';
+  } catch (e) {
+    errEl.textContent = 'Connection failed: ' + (e && e.message ? e.message : e) + '. Check your config and make sure the Realtime Database is enabled.';
     errEl.classList.add('visible');
-    btn.disabled=false;btn.textContent='Connect & Open App';
+    btn.disabled = false; btn.textContent = 'Connect & Open App';
   }
 };
 
-window.useOffline=function(){
-  syncEnabled=false;
+window.useOffline = function () {
+  syncEnabled = false;
   document.getElementById('setupOverlay').classList.add('hidden');
-  setSyncUI('offline','Offline mode','');
+  setSyncUI('offline', 'Offline mode', '');
   init();
 };
 
-async function initFirebase(cfg){
-  roomCode=cfg.room;
-  if(firebaseApp){try{await firebaseApp.delete();}catch{}}
-  firebaseApp=firebase.initializeApp({apiKey:cfg.apiKey,authDomain:cfg.authDomain,databaseURL:cfg.databaseURL,projectId:cfg.projectId},cfg.projectId+'-'+Date.now());
-  db=firebaseApp.database();
-  dbRef=db.ref('rooms/'+roomCode+'/state');
-  setSyncUI('connecting','Connecting…',roomCode);
-  await db.ref('rooms/'+roomCode+'/_ping').set(Date.now());
-  syncEnabled=true;
-  setSyncUI('connected','Live · '+roomCode,roomCode);
-  dbRef.on('value',(snapshot)=>{
-    if(ignoreNextRemote){ignoreNextRemote=false;return;}
-    const data=snapshot.val();
-    if(!data)return;
+/* Firebase init */
+async function initFirebase(cfg) {
+  roomCode = cfg.room;
+  try { if (firebaseApp && firebaseApp.delete) { await firebaseApp.delete(); } } catch { /* noop */ }
+  firebaseApp = firebase.initializeApp({
+    apiKey: cfg.apiKey,
+    authDomain: cfg.authDomain,
+    databaseURL: cfg.databaseURL,
+    projectId: cfg.projectId
+  }, cfg.projectId + '-' + Date.now());
+
+  db = firebaseApp.database();
+  dbRef = db.ref('rooms/' + roomCode + '/state');
+
+  setSyncUI('connecting', 'Connecting…', roomCode);
+
+  await db.ref('rooms/' + roomCode + '/_ping').set(Date.now());
+  syncEnabled = true;
+  setSyncUI('connected', 'Live · ' + roomCode, roomCode);
+
+  dbRef.on('value', (snapshot) => {
+    if (ignoreNextRemote) { ignoreNextRemote = false; return; }
+    const data = snapshot.val();
+    if (!data) return;
     applyRemoteState(data);
   });
-  db.ref('rooms/'+roomCode+'/presence/'+Math.random().toString(36).slice(2)).set({online:true,ts:Date.now()});
-  db.ref('rooms/'+roomCode+'/presence').on('value',(snap)=>{
-    const n=snap.exists()?Object.keys(snap.val()).length:1;
-    connectedUsers=n;
-    const el=document.getElementById('syncUsers');
-    if(n>1){el.style.display='block';el.textContent=n+' online';}
-    else el.style.display='none';
+
+  // lightweight presence count (no onDisconnect to keep it simple for SP/Teams)
+  db.ref('rooms/' + roomCode + '/presence/' + Math.random().toString(36).slice(2))
+    .set({ online: true, ts: Date.now() });
+
+  db.ref('rooms/' + roomCode + '/presence').on('value', (snap) => {
+    const n = snap.exists() ? Object.keys(snap.val()).length : 1;
+    connectedUsers = n;
+    const el = document.getElementById('syncUsers');
+    if (n > 1) { el.style.display = 'block'; el.textContent = n + ' online'; }
+    else { el.style.display = 'none'; }
   });
+
+  // Boot the app after sync is ready
+  init();
 }
 
-function applyRemoteState(data){
-  mode=data.mode||null;
-  roster=data.roster||[];
-  absentRoster=data.absentRoster||[];
-  rotationStartedAt=data.rotationStartedAt||Date.now();
-  timerRunning=data.timerRunning!==undefined?data.timerRunning:true;
-  pausedAt=data.pausedAt||null;
-  coverStartedAt=data.coverStartedAt||null;
-  coverSecsUsed=data.coverSecsUsed||0;
-  availBlocks=data.availBlocks||[];
-  cmRNs=data.cmRNs||[];
-  availLunchRoster=data.availLunchRoster||[];
-  ptoList=data.ptoList||[];
-  preceptingList=data.preceptingList||[];
-  dailyInfo=data.dailyInfo||{msl:'',fingerprints:'',apt:'',meetings:'',other:''};
-  daPTO=data.daPTO||[];daAway=data.daAway||[];daPrecept=data.daPrecept||[];
-  log=data.log||[];
+/* Apply remote state */
+function applyRemoteState(data) {
+  mode = data.mode || null;
+  roster = data.roster || [];
+  absentRoster = data.absentRoster || [];
+  rotationStartedAt = data.rotationStartedAt || Date.now();
+  timerRunning = (data.timerRunning !== undefined) ? data.timerRunning : true;
+  pausedAt = data.pausedAt || null;
+  coverStartedAt = data.coverStartedAt || null;
+  coverSecsUsed = data.coverSecsUsed || 0;
+  availBlocks = data.availBlocks || [];
+  cmRNs = data.cmRNs || [];
+  availLunchRoster = data.availLunchRoster || [];
+  ptoList = data.ptoList || [];
+  preceptingList = data.preceptingList || [];
+  dailyInfo = data.dailyInfo || { msl:'', fingerprints:'', apt:'', meetings:'', other:'' };
+  daPTO = data.daPTO || [];
+  daAway = data.daAway || [];
+  daPrecept = data.daPrecept || [];
+  log = data.log || [];
+
   renderMode();
-  document.getElementById('timerToggle').textContent=timerRunning?'Pause':'Resume';
+  const tgl = document.getElementById('timerToggle');
+  if (tgl) tgl.textContent = timerRunning ? 'Pause' : 'Resume';
 }
 
-// ─── Persistence ─────────────────────────────────────────────────────────────
-function saveState(){
-  const state={mode,roster,absentRoster,rotationStartedAt,timerRunning,pausedAt,coverStartedAt,coverSecsUsed,availBlocks,cmRNs,availLunchRoster,ptoList,preceptingList,dailyInfo,daPTO,daAway,daPrecept,log,_ts:Date.now()};
-  // Always save locally as fallback
-  try { sessionStorage.setItem('pods_local',JSON.stringify(state)); } catch{}
-  if(syncEnabled&&db&&dbRef){
-    ignoreNextRemote=true;
-    dbRef.set(state).catch(e=>{
-      console.warn('Firebase write failed:',e);
-      setSyncUI('error','Sync error',roomCode);
+/* Save state (local + remote) */
+function saveState() {
+  const state = {
+    mode, roster, absentRoster, rotationStartedAt, timerRunning, pausedAt,
+    coverStartedAt, coverSecsUsed, availBlocks, cmRNs, availLunchRoster,
+    ptoList, preceptingList, dailyInfo, daPTO, daAway, daPrecept, log, _ts: Date.now()
+  };
+
+  try { sessionStorage.setItem('pods_local', JSON.stringify(state)); } catch {}
+
+  if (syncEnabled && db && dbRef) {
+    ignoreNextRemote = true;
+    dbRef.set(state).catch((e) => {
+      console.warn('Firebase write failed:', e);
+      setSyncUI('error', 'Sync error', roomCode);
     });
   }
 }
 
-function setSyncUI(status,label,room){
-  const dot=document.getElementById('syncDot'),lbl=document.getElementById('syncLabel'),rmEl=document.getElementById('syncRoom');
-  dot.className='sync-dot '+(status==='connected'?'connected':status==='connecting'?'connecting':status==='error'?'error':'');
-  lbl.className='sync-label '+(status==='connected'?'connected':status==='connecting'?'connecting':status==='error'?'error':'');
-  lbl.textContent=label;
-  rmEl.textContent=room?'Room: '+room:'';
-}
-
-// ─── Hard-coded config — no setup screen needed ──────────────────────────────
-const FIREBASE_CFG={
-  apiKey:"AIzaSyC-H6-1UExZRl92N37zcZDHRMQr8zeZDVI",
-  authDomain:"ccmu1-lineup.firebaseapp.com",
-  databaseURL:"https://ccmu1-lineup-default-rtdb.firebaseio.com",
-  projectId:"ccmu1-lineup",
-  room:"CCMU1"
+/* Hard-coded default Firebase (safe to inline; keys are identifiers, not secrets) */
+const FIREBASE_CFG = {
+  apiKey: "AIzaSyC-H6-1UExZRl92N37zcZDHRMQr8zeZDVI",
+  authDomain: "ccmu1-lineup.firebaseapp.com",
+  databaseURL: "https://ccmu1-lineup-default-rtdb.firebaseio.com",
+  projectId: "ccmu1-lineup",
+  room: "CCMU1"
 };
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
-async function init(){
-  document.getElementById('setupOverlay').classList.add('hidden');
-  try {
-    await initFirebase(FIREBASE_CFG);
-  } catch(e) {
-    console.warn('Firebase init failed, falling back to local:',e);
-    setSyncUI('error','Sync unavailable','');
-    loadLocal();
+/* Boot */
+async function init() {
+  // Hide setup overlay if shown
+  const overlay = document.getElementById('setupOverlay');
+  if (overlay) overlay.classList.add('hidden');
+
+  // If we're not already connected (e.g., offline mode), try default config and fall back locally
+  if (!syncEnabled) {
+    try {
+      await initFirebase(FIREBASE_CFG);
+      return; // initFirebase will call init() again after sync and then return
+    } catch (e) {
+      console.warn('Firebase init failed, falling back to local:', e);
+      setSyncUI('error', 'Sync unavailable', '');
+      loadLocal();
+    }
   }
+
   updateDate();
-  if(mode==='pods'){startPodsTimer();startLunchWatcher();}
-  if(mode==='avail'){startAvailCountdown();startLunchWatcher();}
-  clockInterval=setInterval(updateDate,30000);
+  if (mode === 'pods') { startPodsTimer(); startLunchWatcher(); }
+  if (mode === 'avail') { startAvailCountdown(); startLunchWatcher(); }
+  clockInterval = setInterval(updateDate, 30000);
   renderMode();
 }
 
-function loadLocal(){
-  try{
-    const saved=sessionStorage.getItem('pods_local');
-    if(saved){const s=JSON.parse(saved);mode=s.mode||null;roster=s.roster||[];absentRoster=s.absentRoster||[];rotationStartedAt=s.rotationStartedAt||Date.now();timerRunning=s.timerRunning!==undefined?s.timerRunning:true;pausedAt=s.pausedAt||null;coverStartedAt=s.coverStartedAt||null;coverSecsUsed=s.coverSecsUsed||0;availBlocks=s.availBlocks||[];cmRNs=s.cmRNs||[];availLunchRoster=s.availLunchRoster||[];ptoList=s.ptoList||[];preceptingList=s.preceptingList||[];dailyInfo=s.dailyInfo||{msl:'',fingerprints:'',apt:'',meetings:'',other:''};daPTO=s.daPTO||[];daAway=s.daAway||[];daPrecept=s.daPrecept||[];log=s.log||[];}
-  } catch{}
+/* Load fallback local state (if any) */
+function loadLocal() {
+  try {
+    const saved = sessionStorage.getItem('pods_local');
+    if (saved) {
+      const s = JSON.parse(saved);
+      mode = s.mode || null;
+      roster = s.roster || [];
+      absentRoster = s.absentRoster || [];
+      rotationStartedAt = s.rotationStartedAt || Date.now();
+      timerRunning = (s.timerRunning !== undefined) ? s.timerRunning : true;
+      pausedAt = s.pausedAt || null;
+      coverStartedAt = s.coverStartedAt || null;
+      coverSecsUsed = s.coverSecsUsed || 0;
+      availBlocks = s.availBlocks || [];
+      cmRNs = s.cmRNs || [];
+      availLunchRoster = s.availLunchRoster || [];
+      ptoList = s.ptoList || [];
+      preceptingList = s.preceptingList || [];
+      dailyInfo = s.dailyInfo || { msl:'', fingerprints:'', apt:'', meetings:'', other:'' };
+      daPTO = s.daPTO || [];
+      daAway = s.daAway || [];
+      daPrecept = s.daPrecept || [];
+      log = s.log || [];
+    }
+  } catch {}
 }
 
-function fullReset(){mode=null;roster=[];absentRoster=[];rotationStartedAt=Date.now();pausedAt=null;coverStartedAt=null;coverSecsUsed=0;availBlocks=[];cmRNs=[];availLunchRoster=[];ptoList=[];preceptingList=[];dailyInfo={msl:'',fingerprints:'',apt:'',meetings:'',other:''};daPTO=[];daAway=[];daPrecept=[];log=[];}
+/* Clear-all helper */
+function fullReset() {
+  mode = null; roster = []; absentRoster = [];
+  rotationStartedAt = Date.now(); pausedAt = null;
+  coverStartedAt = null; coverSecsUsed = 0;
+  availBlocks = []; cmRNs = []; availLunchRoster = [];
+  ptoList = []; preceptingList = []; dailyInfo = { msl:'', fingerprints:'', apt:'', meetings:'', other:'' };
+  daPTO = []; daAway = []; daPrecept = []; log = [];
+}
 
-// ─── Mode ─────────────────────────────────────────────────────────────────────
-window.setMode=function(m){
-  mode=m;
-  if(m==='pods'){addLog('PODs Day started','system');startPodsTimer();startLunchWatcher();}
-  else{if(!availBlocks.find(b=>b.start==='8:00a'))availBlocks.unshift({start:'8:00a',end:'9:00a',name:'All Watch',callCount:0,unavailable:false});addLog('Available Coverage Day started','system');startAvailCountdown();startLunchWatcher();}
-  saveState();renderMode();
+/* Mode switching + rendering */
+window.setMode = function (m) {
+  mode = m;
+  if (m === 'pods') {
+    addLog('PODs Day started', 'system');
+    startPodsTimer(); startLunchWatcher();
+  } else {
+    if (!availBlocks.find(b => b.start === '8:00a')) {
+      availBlocks.unshift({ start: '8:00a', end: '9:00a', name: 'All Watch', callCount: 0, unavailable: false });
+    }
+    addLog('Available Coverage Day started', 'system');
+    startAvailCountdown(); startLunchWatcher();
+  }
+  saveState(); renderMode();
 };
 
-function renderMode(){
-  document.getElementById('modeSelectorScreen').style.display=mode?'none':'block';
-  document.getElementById('podsScreen').style.display=mode==='pods'?'block':'none';
-  document.getElementById('availScreen').style.display=mode==='avail'?'block':'none';
-  document.getElementById('logSection').style.display=mode?'block':'none';
-  document.getElementById('switchBtn').style.display=mode?'block':'none';
-  const badge=document.getElementById('modeBadge');
-  if(mode==='pods')badge.innerHTML='<span class="mode-badge pods">PODs Day</span>';
-  else if(mode==='avail')badge.innerHTML='<span class="mode-badge avail">Available Coverage</span>';
-  else badge.innerHTML='';
-  if(mode==='pods')renderPods();
-  if(mode==='avail')renderAvail();
+function renderMode() {
+  document.getElementById('modeSelectorScreen').style.display = mode ? 'none' : 'block';
+  document.getElementById('podsScreen').style.display = (mode === 'pods') ? 'block' : 'none';
+  document.getElementById('availScreen').style.display = (mode === 'avail') ? 'block' : 'none';
+  document.getElementById('logSection').style.display = mode ? 'block' : 'none';
+  document.getElementById('switchBtn').style.display = mode ? 'block' : 'none';
+
+  const badge = document.getElementById('modeBadge');
+  if (mode === 'pods') badge.innerHTML = '<span class="mode-badge pods">PODs Day</span>';
+  else if (mode === 'avail') badge.innerHTML = '<span class="mode-badge avail">Available Coverage</span>';
+  else badge.innerHTML = '';
+
+  if (mode === 'pods') renderPods();
+  if (mode === 'avail') renderAvail();
   renderLog();
 }
 
-window.confirmSwitchMode=function(){showDialog('Switch Coverage Mode','This will clear the current lineup and log. Are you sure?',()=>{fullReset();saveState();clearInterval(timerInterval);clearInterval(availCountdownInterval);renderMode();showToast('Mode cleared');});};
+window.confirmSwitchMode = function () {
+  showDialog(
+    'Switch Coverage Mode',
+    'This will clear the current lineup and log. Are you sure?',
+    () => {
+      fullReset();
+      saveState();
+      clearInterval(timerInterval);
+      clearInterval(availCountdownInterval);
+      renderMode();
+      showToast('Mode cleared');
+    }
+  );
+};
 
-function updateDate(){
-  const now=new Date();
-  document.getElementById('dateBlock').innerHTML=now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+'<br>'+now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-  if(mode==='avail')renderAvailHeader();
+function updateDate() {
+  const now = new Date();
+  const db = document.getElementById('dateBlock');
+  if (db) {
+    db.innerHTML = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+      + '<br>' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  }
+  if (mode === 'avail') renderAvailHeader();
 }
 
-// ─── Timer ────────────────────────────────────────────────────────────────────
-const PODS_START_HOUR=8,PODS_START_MIN=30;
-function isBeforePodsStart(){const now=new Date();return now.getHours()*60+now.getMinutes()<PODS_START_HOUR*60+PODS_START_MIN;}
+/* ====== MORE JS CONTINUES IN PART 3 ====== */
+</script>
+<script>
+/* ============================================================================
+   TIMERS, PODs LOGIC, AVAILABLE COVERAGE, LOGS, UTILITIES
+   (Continuation – this completes the functional app)
+=========================================================================== */
 
-function startPodsTimer(){
+/* ---------- Utilities ---------- */
+function pad(n) { return String(n).padStart(2, '0'); }
+function initials(name) {
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+function esc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/* ---------- Timer helpers ---------- */
+function getTimerSeconds() {
+  return Math.max(0, ROTATION_DURATION - Math.floor((Date.now() - rotationStartedAt) / 1000));
+}
+
+const PODS_START_HOUR = 8;
+const PODS_START_MIN = 30;
+
+function isBeforePodsStart() {
+  const now = new Date();
+  return now.getHours() * 60 + now.getMinutes() <
+         PODS_START_HOUR * 60 + PODS_START_MIN;
+}
+
+/* ---------- PODs timer ---------- */
+function startPodsTimer() {
   clearInterval(timerInterval);
-  timerInterval=setInterval(()=>{
-    // Always update pause banner (cover time ticks even when paused)
-    if(!timerRunning){renderPauseBanner();return;}
-    if(isBeforePodsStart())return;
-    const secs=getTimerSeconds();
-    if(secs<=0){
-      rotationStartedAt=Date.now(); // reset BEFORE autoRotate to prevent double-fire
+  timerInterval = setInterval(() => {
+    if (!timerRunning) { renderPauseBanner(); return; }
+    if (isBeforePodsStart()) return;
+
+    const secs = getTimerSeconds();
+    if (secs <= 0) {
+      rotationStartedAt = Date.now();
       autoRotate();
     }
     renderTimer();
     renderPauseBanner();
-    if(mode==='pods')renderLineupSnapshot();
+    renderLineupSnapshot();
     saveState();
-  },1000);
+  }, 1000);
+
   renderTimer();
 }
 
-function renderTimer(){
-  const timerSeconds=getTimerSeconds();
-  const m=Math.floor(timerSeconds/60),s=timerSeconds%60,pct=(timerSeconds/ROTATION_DURATION)*100;
-  const fill=document.getElementById('timerFill'),disp=document.getElementById('timerDisplay');
-  const lbl=document.getElementById('timerLabel');
-  if(!fill||!disp)return;
-  if(isBeforePodsStart()){
-    disp.textContent='30:00';fill.style.width='100%';fill.className='timer-fill';
-    disp.className='timer-display';
-    if(lbl)lbl.textContent='Waiting · PODs starts at 8:30 AM';
+function renderTimer() {
+  const secs = getTimerSeconds();
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  const pct = (secs / ROTATION_DURATION) * 100;
+
+  const fill = document.getElementById('timerFill');
+  const disp = document.getElementById('timerDisplay');
+  const lbl = document.getElementById('timerLabel');
+
+  if (!fill || !disp) return;
+
+  if (isBeforePodsStart()) {
+    disp.textContent = '30:00';
+    fill.style.width = '100%';
+    fill.className = 'timer-fill';
+    disp.className = 'timer-display';
+    if (lbl) lbl.textContent = 'Waiting · PODs starts at 8:30 AM';
     return;
   }
-  if(lbl)lbl.textContent='Auto-rotate';
-  disp.textContent=pad(m)+':'+pad(s);fill.style.width=pct+'%';
-  const cls=timerSeconds<=60?'danger':timerSeconds<=300?'warn':'';
-  fill.className='timer-fill'+(cls?' '+cls:'');disp.className='timer-display'+(cls?' '+cls:'');
+
+  if (lbl) lbl.textContent = 'Auto-rotate';
+
+  disp.textContent = pad(m) + ':' + pad(s);
+  fill.style.width = pct + '%';
+
+  let cls = '';
+  if (secs <= 60) cls = 'danger';
+  else if (secs <= 300) cls = 'warn';
+
+  fill.className = 'timer-fill' + (cls ? ' ' + cls : '');
+  disp.className = 'timer-display' + (cls ? ' ' + cls : '');
 }
 
-document.getElementById('timerToggle').onclick=()=>{
-  if(timerRunning){
-    // Pausing: freeze rotationStartedAt so getTimerSeconds stays constant
-    const secsLeft=getTimerSeconds();
-    rotationStartedAt=Date.now()-(ROTATION_DURATION-secsLeft)*1000;
-    pausedAt=Date.now();
-    // Start tracking position-2 coverage
-    const active=getActive();
-    if(active.length>=2){
-      coverStartedAt=Date.now();
-      addLog('<strong>'+esc(active[0].name)+'</strong> unavailable. <strong>'+esc(active[1].name)+'</strong> covering.','manual');
+/* Pause / Resume */
+document.getElementById('timerToggle').onclick = () => {
+  if (timerRunning) {
+    const secsLeft = getTimerSeconds();
+    rotationStartedAt = Date.now() - (ROTATION_DURATION - secsLeft) * 1000;
+    pausedAt = Date.now();
+
+    const active = getActive();
+    if (active.length >= 2) {
+      coverStartedAt = Date.now();
+      addLog(
+        '<strong>' + esc(active[0].name) + '</strong> unavailable. ' +
+        '<strong>' + esc(active[1].name) + '</strong> covering.',
+        'manual'
+      );
     }
   } else {
-    // Resuming: account for any new cover time
-    if(coverStartedAt){
-      const newCover=Math.floor((Date.now()-coverStartedAt)/1000);
-      coverSecsUsed+=newCover;
-      const active=getActive();
-      if(active.length>=2){
-        const pos2=active[1];
-        const coverMins=Math.ceil(coverSecsUsed/60);
-        addLog('<strong>'+esc(active[0].name)+'</strong> back up front. <strong>'+esc(pos2.name)+'</strong> covered '+coverMins+'m — <span class="ev-credit">'+(Math.max(0,30-coverMins))+'m remaining on their rotation</span>.','manual');
+    if (coverStartedAt) {
+      const newCover = Math.floor((Date.now() - coverStartedAt) / 1000);
+      coverSecsUsed += newCover;
+      const active = getActive();
+      if (active.length >= 2) {
+        const mins = Math.ceil(coverSecsUsed / 60);
+        addLog(
+          '<strong>' + esc(active[0].name) + '</strong> back up front. ' +
+          '<strong>' + esc(active[1].name) + '</strong> covered ' + mins + 'm.',
+          'manual'
+        );
       }
-      coverStartedAt=null;
+      coverStartedAt = null;
     }
-    pausedAt=null;
-    // Advance rotationStartedAt to keep remaining time accurate
-    // (rotationStartedAt was already frozen on pause, so time paused doesn't count)
+    pausedAt = null;
   }
-  timerRunning=!timerRunning;
-  document.getElementById('timerToggle').textContent=timerRunning?'Pause':'Resume';
+
+  timerRunning = !timerRunning;
+  document.getElementById('timerToggle').textContent = timerRunning ? 'Pause' : 'Resume';
   renderPauseBanner();
   saveState();
 };
-document.getElementById('timerReset').onclick=()=>{rotationStartedAt=Date.now();pausedAt=null;coverStartedAt=null;coverSecsUsed=0;timerRunning=true;document.getElementById('timerToggle').textContent='Pause';renderTimer();renderPauseBanner();saveState();showToast('Timer reset');};
 
-// ─── Manual start time ────────────────────────────────────────────────────────
-window.applyManualStart=function(){
-  const val=document.getElementById('manualStartInput').value.trim();
-  if(!val){showToast('Enter a start time');return;}
-  const mins=parsePodsTime(val);
-  if(mins===null){showToast('Format: 8:47a or 847a');return;}
-  const now=new Date();
-  const nowMins=now.getHours()*60+now.getMinutes();
-  const elapsedMins=nowMins-mins;
-  if(elapsedMins<0){showToast('Start time is in the future');return;}
-  const elapsedSecs=elapsedMins*60;
-  if(elapsedSecs>=ROTATION_DURATION){
-    // Already over 30 min — auto-rotate
-    rotationStartedAt=Date.now()-ROTATION_DURATION*1000;
-    renderTimer();saveState();
-    showToast('30+ min elapsed — rotating now');
+document.getElementById('timerReset').onclick = () => {
+  rotationStartedAt = Date.now();
+  pausedAt = null;
+  coverStartedAt = null;
+  coverSecsUsed = 0;
+  timerRunning = true;
+  document.getElementById('timerToggle').textContent = 'Pause';
+  renderTimer();
+  renderPauseBanner();
+  saveState();
+  showToast('Timer reset');
+};
+
+/* ---------- Manual start ---------- */
+window.applyManualStart = function () {
+  const val = document.getElementById('manualStartInput').value.trim();
+  if (!val) { showToast('Enter a start time'); return; }
+
+  const mins = parsePodsTime(val);
+  if (mins === null) { showToast('Format: 8:47a or 847a'); return; }
+
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const elapsedMins = nowMins - mins;
+  if (elapsedMins < 0) { showToast('Start time is in the future'); return; }
+
+  const elapsedSecs = elapsedMins * 60;
+  if (elapsedSecs >= ROTATION_DURATION) {
+    rotationStartedAt = Date.now() - ROTATION_DURATION * 1000;
     autoRotate();
   } else {
-    rotationStartedAt=Date.now()-elapsedSecs*1000;
-    timerRunning=true;
-    document.getElementById('timerToggle').textContent='Pause';
-    document.getElementById('manualStartInput').value='';
-    renderTimer();saveState();
-    showToast('Timer set from '+val);
+    rotationStartedAt = Date.now() - elapsedSecs * 1000;
   }
+
+  timerRunning = true;
+  document.getElementById('manualStartInput').value = '';
+  renderTimer();
+  saveState();
+  showToast('Timer set from ' + val);
 };
 
-function parsePodsTime(t){
-  if(!t)return null;
-  t=t.trim().toLowerCase();
-  const isPM=t.includes('p')&&!t.startsWith('12');
-  t=t.replace(/[ap]/g,'').replace(/:/g,'');
-  let h,m;
-  if(t.length<=2){h=parseInt(t);m=0;}
-  else{h=parseInt(t.slice(0,-2));m=parseInt(t.slice(-2));}
-  if(isNaN(h)||isNaN(m))return null;
-  if(isPM&&h!==12)h+=12;
-  return h*60+m;
+function parsePodsTime(t) {
+  t = t.toLowerCase().replace(':', '');
+  const isPM = t.includes('p') && !t.startsWith('12');
+  t = t.replace(/[ap]/g, '');
+  let h, m;
+  if (t.length <= 2) { h = parseInt(t); m = 0; }
+  else { h = parseInt(t.slice(0, -2)); m = parseInt(t.slice(-2)); }
+  if (isNaN(h) || isNaN(m)) return null;
+  if (isPM && h !== 12) h += 12;
+  return h * 60 + m;
 }
 
-// ─── Pause banner ─────────────────────────────────────────────────────────────
-function renderPauseBanner(){
-  const banner=document.getElementById('pauseBanner');
-  if(!banner)return;
-  if(timerRunning||!pausedAt){banner.style.display='none';return;}
-  const active=getActive();
-  if(active.length<2){banner.style.display='none';return;}
-  const pos1=active[0],pos2=active[1];
-  const totalCoverSecs=coverStartedAt
-    ? coverSecsUsed+Math.floor((Date.now()-coverStartedAt)/1000)
+/* ---------- Pause banner ---------- */
+function renderPauseBanner() {
+  const banner = document.getElementById('pauseBanner');
+  if (!banner || timerRunning || !pausedAt) {
+    if (banner) banner.style.display = 'none';
+    return;
+  }
+
+  const active = getActive();
+  if (active.length < 2) { banner.style.display = 'none'; return; }
+
+  const totalCoverSecs = coverStartedAt
+    ? coverSecsUsed + Math.floor((Date.now() - coverStartedAt) / 1000)
     : coverSecsUsed;
-  const coverMins=Math.ceil(totalCoverSecs/60);
-  const remainingMins=Math.max(0,30-coverMins);
-  const secsLeft=getTimerSeconds();
-  const pos1Mins=Math.ceil(secsLeft/60);
-  document.getElementById('pauseBannerText').innerHTML=
-    '⏸ <strong>'+esc(pos1.name)+'</strong> unavailable · <strong>'+esc(pos2.name)+'</strong> covering ('+coverMins+'m so far, '+remainingMins+'m left) · <strong>'+esc(pos1.name)+'</strong> has '+pos1Mins+'m when back';
-  banner.style.display='block';
+
+  const coverMins = Math.ceil(totalCoverSecs / 60);
+  const remaining = Math.max(0, 30 - coverMins);
+  const secsLeft = getTimerSeconds();
+
+  banner.innerHTML =
+    '⏸ <strong>' + esc(active[0].name) + '</strong> unavailable · ' +
+    '<strong>' + esc(active[1].name) + '</strong> covering (' +
+    coverMins + 'm used, ' + remaining + 'm left) · ' +
+    esc(active[0].name) + ' has ' + Math.ceil(secsLeft / 60) + 'm when back';
+
+  banner.style.display = 'block';
 }
 
-// ─── Lunch watcher ────────────────────────────────────────────────────────────
-function getLunchRoster(){return mode==='pods'?roster:availLunchRoster;}
-function startLunchWatcher(){
+/* ---------- Lunch watcher ---------- */
+function getLunchRoster() {
+  return mode === 'pods' ? roster : availLunchRoster;
+}
+
+function startLunchWatcher() {
   clearInterval(lunchInterval);
-  lunchInterval=setInterval(()=>{
-    let changed=false;
-    getLunchRoster().forEach(rn=>{if(rn.atLunch&&rn.lunchSecondsLeft>0){rn.lunchSecondsLeft--;if(rn.lunchSecondsLeft<=0){returnFromLunch(rn,true);changed=true;}else changed=true;}});
-    if(changed){if(mode==='pods')renderPods();else renderAvail();saveState();}
-  },1000);
+  lunchInterval = setInterval(() => {
+    let changed = false;
+    getLunchRoster().forEach(rn => {
+      if (rn.atLunch && rn.lunchSecondsLeft > 0) {
+        rn.lunchSecondsLeft--;
+        if (rn.lunchSecondsLeft <= 0) {
+          returnFromLunch(rn, true);
+          changed = true;
+        } else changed = true;
+      }
+    });
+    if (changed) {
+      if (mode === 'pods') renderPods();
+      else renderAvail();
+      saveState();
+    }
+  }, 1000);
 }
 
-function goToLunch(rn){
-  if(rn.atLunch)return;
-  const isFront=mode==='pods'&&getActive()[0]===rn;
-  const timeLeft=isFront?getTimerSeconds():0;
-  rn.frontCredit=timeLeft>CREDIT_MINIMUM?timeLeft:0;
-  rn.atLunch=true;rn.lunchSecondsLeft=LUNCH_DURATION;
-  rn.lunchActualTime=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-  rn.originalPosition=getLunchRoster().indexOf(rn);
-  const planNote=rn.lunchSlot?' (planned '+rn.lunchSlot+')':'';
-  const creditNote=rn.frontCredit>0?' — <span class="ev-credit">'+Math.floor(rn.frontCredit/60)+' min credit saved</span>':(timeLeft>0&&timeLeft<=CREDIT_MINIMUM?' — ≤5 min, no credit':'');
-  addLog('<strong>'+esc(rn.name)+'</strong> <span class="ev-lunch">🥗 lunch at '+rn.lunchActualTime+planNote+'</span>'+creditNote,'lunch');
-  if(isFront){rotationStartedAt=Date.now();renderTimer();}
-  if(mode==='pods')renderPods();else renderAvail();
-  saveState();showToast(rn.name+' at lunch. Back in 30 min.');
+/* ---------- Rotation ---------- */
+function getActive() {
+  return roster.filter(r => !r.atLunch);
 }
 
-function returnFromLunch(rn,auto){
-  rn.atLunch=false;rn.lunchSecondsLeft=0;
-  const hasCredit=rn.frontCredit>0;
-  if(mode==='pods'&&!hasCredit){const idx=roster.indexOf(rn);if(idx>-1){roster.splice(idx,1);roster.push(rn);}}
-  addLog('<strong>'+esc(rn.name)+'</strong> <span class="ev-lunch">back from lunch'+(auto?' (auto)':'')+'</span>'+(hasCredit?' — <span class="ev-credit">'+Math.floor(rn.frontCredit/60)+' min credit</span>':' — moved to back (no credit)'),'lunch');
-  if(mode==='pods')renderPods();else renderAvail();
-  saveState();showToast(rn.name+' back'+(hasCredit?' — '+Math.floor(rn.frontCredit/60)+'m credit':''));
+function getFrontRN() {
+  return getActive()[0] || null;
 }
 
-function applyCreditIfNeeded(){
-  const front=getFrontRN();
-  if(front&&front.frontCredit>0){
-    const creditSecs=front.frontCredit;
-    front.frontCredit=0;
-    // Set rotationStartedAt so timer shows creditSecs remaining
-    rotationStartedAt=Date.now()-(ROTATION_DURATION-creditSecs)*1000;
-    renderTimer();
-    addLog('<strong>'+esc(front.name)+'</strong> <span class="ev-credit">front credit applied — '+pad(Math.floor(creditSecs/60))+':'+pad(creditSecs%60)+'</span>','credit');
-    saveState();
-  }
+function rotate(reason, specificRN) {
+  const active = getActive();
+  if (active.length < 2) { showToast('Need 2+ active RNs'); return; }
+
+  const target = specificRN || active[0];
+  const idx = roster.indexOf(target);
+  roster.splice(idx, 1);
+  roster.push(target);
+
+  const next = getFrontRN();
+  addLog(
+    '<strong>' + esc(target.name) + '</strong> → back (' + reason + '). Front: <strong>' +
+    esc(next ? next.name : '—') + '</strong>',
+    reason
+  );
+
+  rotationStartedAt = Date.now();
+  coverStartedAt = null;
+  coverSecsUsed = 0;
+  pausedAt = null;
+
+  renderTimer();
+  renderPods();
+  renderPauseBanner();
+  saveState();
+
+  if (next) showToast(next.name + ' is now up front');
 }
 
-function setLunchPlan(idx,slot){roster[idx].lunchSlot=slot||null;renderLunchGrid(roster,'podsLunchGrid');saveState();}
-window.setLunchPlan=setLunchPlan;
+function autoRotate() { rotate('auto'); }
+window.manualRotate = () => rotate('manual');
 
-function renderLunchGrid(roster_ref,gridId){
-  const grid=document.getElementById(gridId);if(!grid)return;
-  const now=new Date(),nowMins=now.getHours()*60+now.getMinutes();
-  grid.innerHTML=LUNCH_PLAN_SLOTS.map((slot,si)=>{
-    const assigned=roster_ref.filter(rn=>rn.lunchSlot===slot);
-    const slotMins=slotToMins(LUNCH_SLOT_TIMES[si]);
-    const isNow=nowMins>=slotMins&&nowMins<slotMins+30;
-    const namesHTML=assigned.length?assigned.map(rn=>'<div class="lunch-name-row">'+(rn.atLunch?'<span class="lunch-actual-dot"></span>':'')+esc(rn.name)+'</div>').join(''):'<div class="lunch-slot-empty">—</div>';
-    return '<div class="lunch-slot-col'+(isNow?' active-now':'')+'"><span class="lunch-slot-time">'+slot+'</span><div class="lunch-slot-names">'+namesHTML+'</div></div>';
-  }).join('');
-}
-
-function slotToMins(s){if(s==='3:30')return 15*60+30;const[h,m]=s.split(':').map(Number);return h*60+m;}
-function getActive(){return roster.filter(rn=>!rn.atLunch);}
-function getFrontRN(){return getActive()[0]||null;}
-
-// ─── Rotation ─────────────────────────────────────────────────────────────────
-function rotate(reason,specificRN){
-  const active=getActive();if(active.length<2){showToast('Need 2+ active RNs to rotate');return;}
-  const target=specificRN||active[0];const idx=roster.indexOf(target);roster.splice(idx,1);roster.push(target);
-  const next=getFrontRN();
-  const label=reason==='auto'?'<span class="ev-auto">(auto 30 min)</span>':reason==='call-front'?'(took a call)':reason==='call-back'?'<span class="ev-back">(out of turn)</span>':'(manual)';
-  addLog('<strong>'+esc(target.name)+'</strong> → back '+label+'. Front: <strong>'+esc(next?next.name:'—')+'</strong>',reason);
-  rotationStartedAt=Date.now();coverStartedAt=null;coverSecsUsed=0;pausedAt=null;renderTimer();applyCreditIfNeeded();renderPods();renderPauseBanner();saveState();
-  if(next)showToast(next.name+' is now up front');
-}
-
-function autoRotate(){rotate('auto');}
-window.manualRotate=function(){rotate('manual');};
-window.handleTookCall=function(){const front=getFrontRN();if(!front)return;showDialog('Confirm Call Rotation','<strong>'+esc(front.name)+'</strong> took a call and moves to the back. Timer resets.',()=>rotate('call-front'));};
-window.handleTookCallBack=function(idx){const rn=roster[idx];showDialog('Took a Call Out of Turn','<strong>'+esc(rn.name)+'</strong> took a call and will move to the back.',()=>rotate('call-back',rn));};
-
-// ─── Roster management ────────────────────────────────────────────────────────
-window.markAbsent=function(idx){const rn=roster.splice(idx,1)[0];rn.atLunch=false;rn.lunchSecondsLeft=0;rn.lunchSlot=null;rn.frontCredit=0;absentRoster.push(rn);addLog('<strong>'+esc(rn.name)+'</strong> removed','absent');renderPods();saveState();showToast(rn.name+' removed');};
-window.restoreFromAbsent=function(idx){const rn=absentRoster.splice(idx,1)[0];roster.push(rn);addLog('<strong>'+esc(rn.name)+'</strong> restored','manual');renderPods();saveState();showToast(rn.name+' restored');};
-window.toggleAbsentView=function(){absentOpen=!absentOpen;document.getElementById('absentList').style.display=absentOpen?'flex':'none';document.getElementById('absentToggleIcon').textContent=absentOpen?'▾':'▸';};
-
-window.addRN=function(){
-  const input=document.getElementById('addInput'),type=document.getElementById('addType').value,name=input.value.trim();if(!name)return;
-  if(roster.find(r=>r.name.toLowerCase()===name.toLowerCase())||absentRoster.find(r=>r.name.toLowerCase()===name.toLowerCase())){showToast('Already in lineup');return;}
-  const newRN={name,type,lunchSlot:null,atLunch:false,lunchSecondsLeft:0,lunchActualTime:null,frontCredit:0,originalPosition:roster.length};
-  if(type==='evening'){const active=getActive();const fi=active.length>0?roster.indexOf(active[0]):roster.length-1;roster.splice(fi+1,0,newRN);addLog('<strong>'+esc(name)+'</strong> joined as Evening RN','evening');}
-  else{roster.push(newRN);addLog('<strong>'+esc(name)+'</strong> joined the lineup','join');}
-  input.value='';renderPods();saveState();showToast(name+' joined');
+window.handleTookCall = function () {
+  const front = getFrontRN();
+  if (!front) return;
+  showDialog(
+    'Confirm Call Rotation',
+    '<strong>' + esc(front.name) + '</strong> took a call and moves to the back.',
+    () => rotate('call-front')
+  );
 };
 
-window.moveToFront=function(idx){const rn=roster[idx];roster.splice(idx,1);roster.unshift(rn);rotationStartedAt=Date.now();renderTimer();applyCreditIfNeeded();addLog('<strong>'+esc(rn.name)+'</strong> moved to front','manual');renderPods();saveState();showToast(rn.name+' moved to front');};
-window.openAddEveningHint=function(){document.getElementById('addType').value='evening';document.getElementById('addInput').focus();showToast('Type evening RN name and tap Join');};
-window.openPodsResetDialog=function(){showDialog('Reset PODs Lineup','Clear lineup and log to start fresh?',()=>{roster=[];absentRoster=[];rotationStartedAt=Date.now();log=[];addLog('Lineup reset','system');renderTimer();renderPods();renderLog();saveState();showToast('Lineup cleared');});};
+/* ---------- Roster management ---------- */
+window.addRN = function () {
+  const input = document.getElementById('addInput');
+  const type = document.getElementById('addType').value;
+  const name = input.value.trim();
+  if (!name) return;
 
-// ─── Pods render ──────────────────────────────────────────────────────────────
-function renderPods(){renderLunchGrid(roster,'podsLunchGrid');renderPodsLineup();renderPodsCallBtn();renderPodsAbsent();checkPodsCoverage();renderShareLineup();renderDailyAssign();renderPauseBanner();}
+  if (roster.find(r => r.name.toLowerCase() === name.toLowerCase())) {
+    showToast('Already in lineup'); return;
+  }
 
-function renderPodsLineup(){
-  const container=document.getElementById('lineupContainer');
-  if(roster.length===0){container.innerHTML='<div class="empty-state"><div class="empty-state-title">No one in the lineup yet</div><div class="empty-state-sub">Type your name below and tap Join.<br>First in is up front.</div></div>';document.getElementById('rnCount').textContent='0 RNs';return;}
-  const listEl=document.createElement('div');listEl.className='lineup-list';
-  const active=getActive(),frontRN=active[0];let activePos=0;
-  roster.forEach((rn,i)=>{
-    const isFront=rn===frontRN&&!rn.atLunch;if(!rn.atLunch)activePos++;
-    const dispPos=rn.atLunch?'—':activePos,hasCredit=!rn.atLunch&&rn.frontCredit>0;
-    const card=document.createElement('div');
-    let cc='rn-card';if(isFront)cc+=' front';else if(rn.atLunch)cc+=' at-lunch';else if(hasCredit)cc+=' credited';else if(rn.type==='evening')cc+=' evening';
-    card.className=cc;card.draggable=!rn.atLunch;
-    let lunchCD='';if(rn.atLunch&&rn.lunchSecondsLeft>0)lunchCD='<span class="lunch-countdown">'+pad(Math.floor(rn.lunchSecondsLeft/60))+':'+pad(rn.lunchSecondsLeft%60)+'</span>';
-    let badges='';
-    if(isFront)badges+='<span class="badge badge-front">FRONT</span>';
-    if(rn.atLunch)badges+='<span class="badge badge-lunch">LUNCH</span>'+lunchCD;
-    if(hasCredit)badges+='<span class="credit-display">+'+Math.ceil(rn.frontCredit/60)+'m</span>';
-    if(rn.type==='evening'&&!rn.atLunch&&!hasCredit)badges+='<span class="badge badge-evening">EVE</span>';
-    const planOpts=LUNCH_PLAN_SLOTS.map(s=>'<option value="'+s+'"'+(rn.lunchSlot===s?' selected':'')+'>'+s+'</option>').join('');
-    const planSel=!rn.atLunch?'<select class="lunch-plan-select'+(rn.lunchSlot?' set':'')+'" onchange="setLunchPlan('+i+',this.value)"><option value="">Lunch</option>'+planOpts+'</select>':'';
-    let metaText='';
-    if(rn.atLunch)metaText='Lunch since '+(rn.lunchActualTime||'—')+(rn.lunchSlot?' (plan '+rn.lunchSlot+')':'');
-    else if(isFront)metaText='Up front now'+(rn.lunchSlot?' · '+rn.lunchSlot:'');
-    else if(hasCredit)metaText=Math.ceil(rn.frontCredit/60)+'m credit when reached';
-    else metaText='Position '+dispPos+(rn.lunchSlot?' · '+rn.lunchSlot:'');
-    let acts='';
-    if(rn.atLunch){acts='<button class="icon-btn lunch-return" onclick="rnReturnFromLunch('+i+')">↩ Back</button>';}
-    else{acts+='<button class="icon-btn go-lunch" title="Going to lunch" onclick="handleGoLunch_pods('+i+')">🥗</button>';if(!isFront){acts+='<button class="icon-btn to-front" title="Move to front" onclick="moveToFront('+i+')">↑</button>';acts+='<button class="icon-btn to-back" title="Took call out of turn" onclick="handleTookCallBack('+i+')">📞</button>';}acts+='<button class="icon-btn absent" title="Remove" onclick="markAbsent('+i+')">✕</button>';}
-    card.innerHTML='<span class="drag-handle">⠿</span><span class="position-num">'+dispPos+'</span><div class="rn-avatar">'+initials(rn.name)+'</div><div class="rn-info"><div class="rn-name">'+esc(rn.name)+'</div><div class="rn-meta">'+metaText+'</div></div><div class="rn-badges">'+badges+'</div>'+planSel+'<div class="rn-actions">'+acts+'</div>';
-    card.addEventListener('dragstart',e=>{dragSrc=i;e.dataTransfer.effectAllowed='move';});
-    card.addEventListener('dragover',e=>{e.preventDefault();card.classList.add('drag-over');});
-    card.addEventListener('dragleave',()=>card.classList.remove('drag-over'));
-    card.addEventListener('drop',e=>{e.preventDefault();card.classList.remove('drag-over');if(dragSrc!==null&&dragSrc!==i){const moved=roster.splice(dragSrc,1)[0];roster.splice(i,0,moved);addLog(esc(moved.name)+' moved to position '+(i+1)+' (drag)','manual');renderPods();saveState();}dragSrc=null;});
-    listEl.appendChild(card);
-  });
-  container.innerHTML='';container.appendChild(listEl);
-  document.getElementById('rnCount').textContent=active.length+' active / '+roster.length+' total';
-}
-
-window.rnReturnFromLunch=function(idx){returnFromLunch(roster[idx],false);};
-window.handleGoLunch_pods=function(idx){const rn=roster[idx];showDialog('Going to Lunch','<strong>'+esc(rn.name)+'</strong> heading to lunch now'+(rn.lunchSlot?' (plan '+rn.lunchSlot+')':'')+'. 30-min countdown starts.',()=>goToLunch(rn));};
-function renderPodsCallBtn(){const front=getFrontRN();document.getElementById('callBtnName').textContent=front?'('+front.name+')':'';document.getElementById('callBtn').disabled=!front;}
-
-function renderLineupSnapshot(){
-  const snap=document.getElementById('lineupSnapshot'),txt=document.getElementById('snapshotText');
-  const active=getActive();if(roster.length===0){snap.style.display='none';return;}
-  snap.style.display='flex';
-  const timerSeconds=getTimerSeconds();
-  const now=new Date(),minsLeft=Math.ceil(timerSeconds/60);
-  const startStr=new Date(rotationStartedAt).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-  const parts=[];
-  roster.forEach((rn,i)=>{
-    const isFirst=active[0]===rn&&!rn.atLunch;
-    const isSecond=active[1]===rn&&!rn.atLunch;
-    if(rn.atLunch)parts.push(rn.name+' (lunch)');
-    else if(isFirst){
-      if(!timerRunning&&pausedAt){
-        parts.push(rn.name+' (up front · unavailable · '+minsLeft+'m remaining when back)');
-      } else {
-        parts.push(rn.name+' (up front since '+startStr+', '+minsLeft+'m left)');
-      }
-    }
-    else if(isSecond&&!timerRunning&&pausedAt){
-      const totalCoverSecs=coverStartedAt
-        ? coverSecsUsed+Math.floor((Date.now()-coverStartedAt)/1000)
-        : coverSecsUsed;
-      const coverMins=Math.ceil(totalCoverSecs/60);
-      const remaining=Math.max(0,30-coverMins);
-      parts.push(rn.name+' (covering · '+coverMins+'m used, '+remaining+'m left)');
-    }
-    else parts.push(rn.name);
-  });
-  const htmlParts=parts.map((p,i)=>{const rn=roster[i];const isFirst=active[0]===rn&&!rn.atLunch;return isFirst?'<span class="snap-front">'+esc(p)+'</span>':esc(p);});
-  txt.innerHTML=htmlParts.length?htmlParts.join(', '):'<span class="snapshot-empty">No one in lineup yet.</span>';
-  txt._plain=parts.join(', ');
-}
-
-window.copySnapshot=function(){const txt=document.getElementById('snapshotText');const text=txt._plain||txt.textContent;navigator.clipboard.writeText(text).then(()=>showToast('Lineup copied'));};
-function renderPodsAbsent(){
-  const section=document.getElementById('absentSection'),listEl=document.getElementById('absentList'),label=document.getElementById('absentToggleLabel');
-  if(absentRoster.length===0){section.style.display='none';return;}
-  section.style.display='block';label.textContent='Removed ('+absentRoster.length+')';
-  listEl.innerHTML=absentRoster.map((rn,i)=>'<div class="absent-chip">'+esc(rn.name)+'<button class="absent-restore" onclick="restoreFromAbsent('+i+')">↩ restore</button></div>').join('');
-}
-function checkPodsCoverage(){const active=getActive(),warn=document.getElementById('podsCoverageWarn'),txt=document.getElementById('podsCoverageWarnText');if(roster.length>0&&active.length===0){txt.textContent='No active RNs. All at lunch.';warn.classList.add('visible');}else if(active.length===1){txt.textContent='Only '+active[0].name+' covering.';warn.classList.add('visible');}else warn.classList.remove('visible');}
-
-// ─── Available Coverage ───────────────────────────────────────────────────────
-function parseTimeToMins(t){if(!t)return null;t=t.trim().toLowerCase();const isPM=t.includes('p')&&!t.includes('12');t=t.replace(/[ap]/g,'');let[h,m]=t.includes(':')?t.split(':').map(Number):[parseInt(t),0];if(isNaN(h))return null;if(isPM&&h!==12)h+=12;return h*60+(m||0);}
-function getCurrentBlock(){const now=new Date(),nowMins=now.getHours()*60+now.getMinutes();return availBlocks.find(b=>{const s=parseTimeToMins(b.start),e=parseTimeToMins(b.end);return s!==null&&e!==null&&nowMins>=s&&nowMins<e;})||null;}
-function startAvailCountdown(){clearInterval(availCountdownInterval);availCountdownInterval=setInterval(()=>{renderAvailHeader();saveState();},60000);renderAvailHeader();}
-
-function renderAvailHeader(){
-  const now=new Date(),nowMins=now.getHours()*60+now.getMinutes();
-  const cur=getCurrentBlock();const nameEl=document.getElementById('availCurrentName'),cdEl=document.getElementById('availCountdown');
-  if(!nameEl||!cdEl)return;
-  if(cur){nameEl.textContent=cur.name;nameEl.className='avail-current-name'+(cur.name==='All Watch'?' all-watch':'');const endMins=parseTimeToMins(cur.end);const remaining=endMins-nowMins;cdEl.textContent=remaining<=0?'ending':remaining+'m left';cdEl.className='avail-countdown'+(remaining<=15?' soon':'');}
-  else{const next=availBlocks.filter(b=>{const s=parseTimeToMins(b.start);return s!==null&&s>nowMins;}).sort((a,b)=>parseTimeToMins(a.start)-parseTimeToMins(b.start))[0];if(next){nameEl.textContent='Next: '+next.name;nameEl.className='avail-current-name';cdEl.textContent='at '+next.start;}else{nameEl.textContent='No active block';nameEl.className='avail-current-name';cdEl.textContent='';}}
-}
-
-// ─── Daily Info ───────────────────────────────────────────────────────────────
-window.saveDailyInfo=function(){
-  dailyInfo={
-    msl:document.getElementById('di_msl').value.trim(),
-    fingerprints:document.getElementById('di_fingerprints').value.trim(),
-    apt:document.getElementById('di_apt').value.trim(),
-    meetings:document.getElementById('di_meetings').value.trim(),
-    other:document.getElementById('di_other').value.trim()
+  const rn = {
+    name, type,
+    lunchSlot: null,
+    atLunch: false,
+    lunchSecondsLeft: 0,
+    lunchActualTime: null,
+    frontCredit: 0
   };
+
+  roster.push(rn);
+  addLog('<strong>' + esc(name) + '</strong> joined the lineup', 'join');
+  input.value = '';
+  renderPods();
+  saveState();
+  showToast(name + ' joined');
+};
+
+window.markAbsent = function (idx) {
+  const rn = roster.splice(idx, 1)[0];
+  rn.atLunch = false;
+  absentRoster.push(rn);
+  addLog('<strong>' + esc(rn.name) + '</strong> removed', 'absent');
+  renderPods();
   saveState();
 };
 
-function renderDailyInfo(){
-  if(!dailyInfo)return;
-  const fields=['msl','fingerprints','apt','meetings','other'];
-  fields.forEach(f=>{const el=document.getElementById('di_'+f);if(el&&dailyInfo[f]!==undefined)el.value=dailyInfo[f];});
-}
-
-// ─── PTO / Flex / Out ─────────────────────────────────────────────────────────
-window.addPTO=function(){
-  const name=document.getElementById('ptoName').value.trim();
-  const status=document.getElementById('ptoStatus').value;
-  const note=document.getElementById('ptoNote').value.trim();
-  if(!name){showToast('Enter a name');return;}
-  ptoList.push({name,status,note});
-  addLog('<strong>'+esc(name)+'</strong> added as '+status,'avail');
-  document.getElementById('ptoName').value='';
-  document.getElementById('ptoNote').value='';
-  renderAvail();saveState();showToast(name+' added');
-};
-window.removePTO=function(idx){ptoList.splice(idx,1);renderAvail();saveState();};
-
-function renderPTOList(){
-  const el=document.getElementById('ptoList');
-  if(!ptoList.length){el.innerHTML='<span class="cm-empty">None</span>';return;}
-  el.innerHTML=ptoList.map((p,i)=>
-    '<div class="pto-chip"><span class="pto-status '+p.status+'">'+p.status+'</span>'+esc(p.name)+(p.note?' · <em style="color:#8a8070">'+esc(p.note)+'</em>':'')+'<button class="cm-remove" onclick="removePTO('+i+')" title="Remove">✕</button></div>'
-  ).join('');
-}
-
-// ─── Precepting ───────────────────────────────────────────────────────────────
-window.addPrecepting=function(){
-  const preceptor=document.getElementById('preceptor').value.trim();
-  const preceptee=document.getElementById('preceptee').value.trim();
-  if(!preceptor||!preceptee){showToast('Enter both names');return;}
-  preceptingList.push({preceptor,preceptee});
-  addLog('<strong>'+esc(preceptor)+'</strong> precepting <strong>'+esc(preceptee)+'</strong>','avail');
-  document.getElementById('preceptor').value='';
-  document.getElementById('preceptee').value='';
-  renderAvail();saveState();showToast('Pair added');
-};
-window.removePrecepting=function(idx){preceptingList.splice(idx,1);renderAvail();saveState();};
-
-function renderPreceptList(){
-  const el=document.getElementById('preceptList');
-  if(!preceptingList.length){el.innerHTML='<span class="cm-empty">None</span>';return;}
-  el.innerHTML=preceptingList.map((p,i)=>
-    '<div class="precept-chip">'+esc(p.preceptor)+'<span class="precept-arrow">→</span>'+esc(p.preceptee)+'<button class="cm-remove" onclick="removePrecepting('+i+')" title="Remove">✕</button></div>'
-  ).join('');
-}
-
-// ─── Coverage blocks ──────────────────────────────────────────────────────────
-window.addBlock=function(){
-  const start=document.getElementById('blockStart').value.trim(),end=document.getElementById('blockEnd').value.trim(),name=document.getElementById('blockName').value.trim();
-  if(!start||!end||!name){showToast('Fill in start, end, and name');return;}
-  if(parseTimeToMins(start)===null||parseTimeToMins(end)===null){showToast('Check time format (e.g. 9a or 10:30a)');return;}
-  availBlocks.push({start,end,name,callCount:0,unavailable:false});
-  availBlocks.sort((a,b)=>parseTimeToMins(a.start)-parseTimeToMins(b.start));
-  if(name!=='All Watch'&&!availLunchRoster.find(r=>r.name.toLowerCase()===name.toLowerCase()))availLunchRoster.push({name,lunchSlot:null,atLunch:false,lunchSecondsLeft:0,lunchActualTime:null,frontCredit:0});
-  addLog('<span class="ev-avail">Block added: '+esc(name)+' '+esc(start)+'–'+esc(end)+'</span>','avail');
-  document.getElementById('blockStart').value='';document.getElementById('blockEnd').value='';document.getElementById('blockName').value='';
-  renderAvail();saveState();showToast(name+' block added');
+window.restoreFromAbsent = function (idx) {
+  const rn = absentRoster.splice(idx, 1)[0];
+  roster.push(rn);
+  addLog('<strong>' + esc(rn.name) + '</strong> restored', 'manual');
+  renderPods();
+  saveState();
 };
 
-window.removeBlock=function(idx){const b=availBlocks[idx];showDialog('Remove Block','Remove <strong>'+esc(b.name)+'</strong> ('+esc(b.start)+'–'+esc(b.end)+')?',()=>{availBlocks.splice(idx,1);addLog('<span class="ev-avail">Block removed: '+esc(b.name)+'</span>','avail');renderAvail();saveState();showToast('Block removed');});};
-window.incrementCall=function(idx){availBlocks[idx].callCount++;addLog('<span class="ev-avail">Call logged: <strong>'+esc(availBlocks[idx].name)+'</strong>. Total: '+availBlocks[idx].callCount+'</span>','avail');renderAvail();saveState();};
-window.decrementCall=function(idx){if(availBlocks[idx].callCount>0)availBlocks[idx].callCount--;renderAvail();saveState();};
-window.toggleUnavail=function(idx){availBlocks[idx].unavailable=!availBlocks[idx].unavailable;addLog('<span class="ev-avail"><strong>'+esc(availBlocks[idx].name)+'</strong> marked '+(availBlocks[idx].unavailable?'unavailable':'available again')+'</span>','avail');renderAvail();saveState();};
+/* ---------- PODs render ---------- */
+function renderPods() {
+  renderPodsLineup();
+  renderPodsCallBtn();
+  renderPodsAbsent();
+}
 
-window.addCM=function(){const input=document.getElementById('cmInput'),name=input.value.trim();if(!name)return;if(cmRNs.find(r=>r.toLowerCase()===name.toLowerCase())){showToast('Already listed');return;}cmRNs.push(name);addLog('<strong>'+esc(name)+'</strong> added to CM list','avail');input.value='';renderAvail();saveState();showToast(name+' added to CM');};
-window.removeCM=function(idx){cmRNs.splice(idx,1);renderAvail();saveState();};
-window.openAvailResetDialog=function(){showDialog('Reset Available Coverage','Clear all blocks, CM list, and daily info?',()=>{availBlocks=[{start:'8:00a',end:'9:00a',name:'All Watch',callCount:0,unavailable:false}];cmRNs=[];availLunchRoster=[];ptoList=[];preceptingList=[];dailyInfo={msl:'',fingerprints:'',apt:'',meetings:'',other:''};log=[];addLog('Available Coverage reset','system');renderAvail();renderLog();saveState();showToast('Reset');});};
+function renderPodsLineup() {
+  const container = document.getElementById('lineupContainer');
+  if (!roster.length) {
+    container.innerHTML =
+      '<div class="empty-state"><div class="empty-state-title">No one in the lineup yet</div>' +
+      '<div class="empty-state-sub">Type your name below and tap Join.</div></div>';
+    document.getElementById('rnCount').textContent = '0 RNs';
+    return;
+  }
 
-function renderAvail(){renderAvailHeader();renderDailyInfo();renderPTOList();renderPreceptList();renderCMList();renderAvailBlocks();renderHandoff();checkAvailCoverage();}
-function renderCMList(){const list=document.getElementById('cmList');if(cmRNs.length===0){list.innerHTML='<span class="cm-empty">None assigned</span>';return;}list.innerHTML=cmRNs.map((n,i)=>'<div class="cm-chip">'+esc(n)+'<button class="cm-remove" onclick="removeCM('+i+')" title="Remove">✕</button></div>').join('');}
+  const active = getActive();
+  let pos = 0;
+  container.innerHTML = roster.map((rn, i) => {
+    if (!rn.atLunch) pos++;
+    const disp = rn.atLunch ? '—' : pos;
+    return `
+      <div class="rn-card ${rn === active[0] ? 'front' : ''} ${rn.atLunch ? 'at-lunch' : ''}">
+        <span class="position-num">${disp}</span>
+        <div class="rn-avatar">${initials(rn.name)}</div>
+        <div class="rn-info">
+          <div class="rn-name">${esc(rn.name)}</div>
+          <div class="rn-meta">${rn.atLunch ? 'At lunch' : 'Position ' + disp}</div>
+        </div>
+        <div class="rn-actions">
+          ${!rn.atLunch ? `<button class="icon-btn absent" onclick="markAbsent(${i})">✕</button>` : ''}
+        </div>
+      </div>`;
+  }).join('');
 
-function renderAvailBlocks(){
-  const list=document.getElementById('availBlockList');
-  if(availBlocks.length===0){list.innerHTML='<div class="empty-state" style="margin:0 0 10px"><div class="empty-state-title">No blocks yet</div><div class="empty-state-sub">Add coverage blocks below.</div></div>';return;}
-  const now=new Date(),nowMins=now.getHours()*60+now.getMinutes();
-  list.innerHTML='';
-  availBlocks.forEach((b,i)=>{
-    const s=parseTimeToMins(b.start),e=parseTimeToMins(b.end);
-    const isActive=s!==null&&e!==null&&nowMins>=s&&nowMins<e,isPast=e!==null&&nowMins>=e,isAllWatch=b.name==='All Watch';
-    let cc='avail-block';if(isActive)cc+=isAllWatch?' all-watch-block active-block':' active-block';if(isPast)cc+=' past-block';if(b.unavailable)cc+=' unavail-block';
-    let badges='';
-    if(isActive)badges+='<span class="badge '+(isAllWatch?'badge-allwatch':'badge-active')+'">'+(isAllWatch?'ALL WATCH':'ACTIVE')+'</span>';
-    if(isPast)badges+='<span class="badge badge-past">DONE</span>';
-    if(b.unavailable)badges+='<span class="badge badge-unavail">UNAVAIL</span>';
-    const lunchRN=availLunchRoster.find(r=>r.name.toLowerCase()===b.name.toLowerCase());
-    let lunchBtn='';
-    if(!isAllWatch&&lunchRN){const safeName=b.name.replace(/\\/g,'\\\\').replace(/'/g,'\\x27');if(lunchRN.atLunch)lunchBtn='<button class="icon-btn lunch-return" onclick="availReturnFromLunch(\''+safeName+'\')">↩</button>';else lunchBtn='<button class="icon-btn go-lunch" title="Going to lunch" onclick="handleGoLunch_avail(\''+safeName+'\')">🥗</button>';}
-    let lunchCD='';if(lunchRN&&lunchRN.atLunch&&lunchRN.lunchSecondsLeft>0)lunchCD=' · 🥗 '+pad(Math.floor(lunchRN.lunchSecondsLeft/60))+':'+pad(lunchRN.lunchSecondsLeft%60);
-    const meta=b.unavailable?'Unavailable':(isPast?b.callCount+' call'+(b.callCount!==1?'s':''):(isActive?'Active · '+b.callCount+' call'+(b.callCount!==1?'s':''):'Upcoming'))+lunchCD;
-    const div=document.createElement('div');div.className=cc;
-    div.innerHTML=
-      '<div class="avail-block-time">'+esc(b.start)+'–'+esc(b.end)+'</div>'+
-      '<div class="avail-block-avatar">'+initials(b.name)+'</div>'+
-      '<div class="avail-block-info"><div class="avail-block-name">'+esc(b.name)+'</div><div class="avail-block-meta">'+meta+'</div></div>'+
-      '<div class="avail-block-badges">'+badges+'</div>'+
-      (!isAllWatch&&!isPast?'<div style="display:flex;flex-direction:column;align-items:center;gap:2px"><button class="call-count-btn" onclick="incrementCall('+i+')" title="Log a call">+</button><span class="call-count-label">'+b.callCount+' calls</span>'+(b.callCount>0?'<button style="background:none;border:none;color:#c4bdb0;font-size:9px;cursor:pointer;font-weight:600" onclick="decrementCall('+i+')">undo</button>':'')+'</div>':'<div style="min-width:52px;text-align:center"><span style="font-size:14px;font-weight:800;color:#1a1a1a">'+b.callCount+'</span><br><span class="call-count-label">calls</span></div>')+
-      (!isAllWatch?'<div class="avail-block-actions">'+lunchBtn+'<button class="icon-btn '+(b.unavailable?'to-front':'to-back')+'" title="'+(b.unavailable?'Mark available':'Mark unavailable')+'" onclick="toggleUnavail('+i+')">'+(b.unavailable?'✓':'⚠')+'</button><button class="icon-btn absent" title="Remove block" onclick="removeBlock('+i+')">✕</button></div>':'<div class="avail-block-actions"></div>');
-    list.appendChild(div);
+  document.getElementById('rnCount').textContent =
+    active.length + ' active / ' + roster.length + ' total';
+}
+
+function renderPodsCallBtn() {
+  const front = getFrontRN();
+  document.getElementById('callBtnName').textContent = front ? '(' + front.name + ')' : '';
+  document.getElementById('callBtn').disabled = !front;
+}
+
+/* ---------- Available coverage ---------- */
+function parseTimeToMins(t) {
+  if (!t) return null;
+  t = t.toLowerCase().replace(':', '');
+  const isPM = t.includes('p') && !t.startsWith('12');
+  t = t.replace(/[ap]/g, '');
+  let h = parseInt(t), m = 0;
+  if (isNaN(h)) return null;
+  if (isPM && h !== 12) h += 12;
+  return h * 60 + m;
+}
+
+function getCurrentBlock() {
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  return availBlocks.find(b => {
+    const s = parseTimeToMins(b.start);
+    const e = parseTimeToMins(b.end);
+    return s !== null && e !== null && nowMins >= s && nowMins < e;
+  }) || null;
+}
+
+function startAvailCountdown() {
+  clearInterval(availCountdownInterval);
+  availCountdownInterval = setInterval(() => {
+    renderAvailHeader();
+    saveState();
+  }, 60000);
+  renderAvailHeader();
+}
+
+function renderAvailHeader() {
+  const cur = getCurrentBlock();
+  const nameEl = document.getElementById('availCurrentName');
+  const cdEl = document.getElementById('availCountdown');
+
+  if (!cur) {
+    nameEl.textContent = 'No active block';
+    cdEl.textContent = '';
+    return;
+  }
+
+  const now = new Date();
+  const endMins = parseTimeToMins(cur.end);
+  const remaining = endMins - (now.getHours() * 60 + now.getMinutes());
+
+  nameEl.textContent = cur.name;
+  cdEl.textContent = remaining + 'm left';
+}
+
+/* ---------- Logs ---------- */
+function addLog(event, type) {
+  const now = new Date();
+  log.unshift({
+    time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+    event, type
   });
+  if (log.length > 150) log.pop();
+  renderLog();
 }
 
-window.availReturnFromLunch=function(name){const rn=availLunchRoster.find(r=>r.name===name);if(rn)returnFromLunch(rn,false);};
-window.handleGoLunch_avail=function(name){const rn=availLunchRoster.find(r=>r.name===name);if(!rn)return;showDialog('Going to Lunch','<strong>'+esc(name)+'</strong> heading to lunch now. 30-min countdown starts.',()=>goToLunch(rn));};
-
-function renderHandoff(){
-  const preview=document.getElementById('handoffPreview');
-  const lines=[];
-  // Daily info
-  if(dailyInfo){
-    if(dailyInfo.msl)lines.push('MSL: '+dailyInfo.msl);
-    if(dailyInfo.fingerprints)lines.push('Fingerprints: '+dailyInfo.fingerprints);
-    if(dailyInfo.apt)lines.push('Apt Time: '+dailyInfo.apt);
-    if(dailyInfo.meetings)lines.push('Meetings: '+dailyInfo.meetings);
-    if(dailyInfo.other)lines.push('Other: '+dailyInfo.other);
-    if(lines.length)lines.push('');
+function renderLog() {
+  const list = document.getElementById('logList');
+  if (!log.length) {
+    list.innerHTML = '<div class="log-empty">No activity yet.</div>';
+    return;
   }
-  // PTO
-  if(ptoList.length){lines.push('PTO/Flex/Out:');ptoList.forEach(p=>lines.push('  '+p.status+': '+p.name+(p.note?' ('+p.note+')':'')));lines.push('');}
-  // Precepting
-  if(preceptingList.length){lines.push('Precepting:');preceptingList.forEach(p=>lines.push('  '+p.preceptor+' → '+p.preceptee));lines.push('');}
-  // CM
-  if(cmRNs.length){lines.push('CM: '+cmRNs.join(', '));lines.push('');}
-  // Coverage
-  const completed=availBlocks.filter(b=>{const e=parseTimeToMins(b.end);return e!==null&&new Date().getHours()*60+new Date().getMinutes()>=e;});
-  if(completed.length){lines.push('Coverage:');completed.forEach(b=>lines.push('  '+b.start+'–'+b.end+' '+b.name+' ('+b.callCount+' call'+(b.callCount!==1?'s':'')+')'));}
-  if(!lines.length){preview.textContent='No data yet.';return;}
-  preview.textContent=lines.join('\n');
+  list.innerHTML = log.map(e =>
+    `<div class="log-entry">
+       <span class="log-time">${e.time}</span>
+       <span class="log-event">${e.event}</span>
+     </div>`
+  ).join('');
 }
 
-window.copyHandoff=function(){const text=document.getElementById('handoffPreview').textContent;if(text==='No data yet.'){showToast('Nothing to copy yet');return;}navigator.clipboard.writeText(text).then(()=>showToast('Handoff message copied'));};
-function checkAvailCoverage(){const cur=getCurrentBlock(),warn=document.getElementById('availCoverageWarn'),txt=document.getElementById('availCoverageWarnText');if(cur&&cur.unavailable){txt.textContent=cur.name+' is unavailable. No active coverage.';warn.classList.add('visible');}else warn.classList.remove('visible');}
-
-// ─── Daily Assignment (PODs) ──────────────────────────────────────────────────
-window.toggleDailyAssign=function(){
-  const body=document.getElementById('dailyAssignBody');
-  const icon=document.getElementById('dailyAssignIcon');
-  const open=body.style.display==='block';
-  body.style.display=open?'none':'block';
-  icon.textContent=open?'▸':'▾';
+window.copyLog = function () {
+  const text = log.map(e => `[${e.time}] ${e.event.replace(/<[^>]+>/g,'')}`).join('\n');
+  navigator.clipboard.writeText(text).then(() => showToast('Log copied'));
 };
 
-window.addDAPTO=function(){
-  const name=document.getElementById('daPTOName').value.trim();
-  const status=document.getElementById('daPTOStatus').value;
-  const note=document.getElementById('daPTONote').value.trim();
-  if(!name){showToast('Enter a name');return;}
-  daPTO.push({name,status,note});
-  document.getElementById('daPTOName').value='';
-  document.getElementById('daPTONote').value='';
-  renderDailyAssign();saveState();
+/* ---------- Dialog + Toast ---------- */
+window.showDialog = function (title, body, onConfirm) {
+  document.getElementById('dialogTitle').textContent = title;
+  document.getElementById('dialogBody').innerHTML = body;
+  document.getElementById('dialogConfirm').onclick = () => {
+    closeDialog(); onConfirm();
+  };
+  document.getElementById('overlay').classList.add('active');
 };
-window.removeDAPTO=function(i){daPTO.splice(i,1);renderDailyAssign();saveState();};
 
-window.addDAAway=function(){
-  const name=document.getElementById('daAwayName').value.trim();
-  const reason=document.getElementById('daAwayReason').value;
-  const time=document.getElementById('daAwayTime').value.trim();
-  if(!name){showToast('Enter a name');return;}
-  daAway.push({name,reason,time});
-  document.getElementById('daAwayName').value='';
-  document.getElementById('daAwayTime').value='';
-  renderDailyAssign();saveState();
+window.closeDialog = function () {
+  document.getElementById('overlay').classList.remove('active');
 };
-window.removeDAAway=function(i){daAway.splice(i,1);renderDailyAssign();saveState();};
 
-window.addDAPrecept=function(){
-  const preceptor=document.getElementById('daPreceptor').value.trim();
-  const preceptee=document.getElementById('daPreceptee').value.trim();
-  if(!preceptor||!preceptee){showToast('Enter both names');return;}
-  daPrecept.push({preceptor,preceptee});
-  document.getElementById('daPreceptor').value='';
-  document.getElementById('daPreceptee').value='';
-  renderDailyAssign();saveState();
-};
-window.removeDAPrecept=function(i){daPrecept.splice(i,1);renderDailyAssign();saveState();};
+document.getElementById('overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('overlay')) closeDialog();
+});
 
-function renderDailyAssign(){
-  // PTO list
-  const ptoEl=document.getElementById('daPTOList');
-  if(ptoEl){
-    if(!daPTO.length){ptoEl.innerHTML='<span class="cm-empty">None</span>';}
-    else{ptoEl.innerHTML=daPTO.map((p,i)=>'<div class="pto-chip"><span class="pto-status '+p.status+'">'+p.status+'</span>'+esc(p.name)+(p.note?' · <em style="color:#8a8070">'+esc(p.note)+'</em>':'')+'<button class="cm-remove" onclick="removeDAPTO('+i+')">✕</button></div>').join('');}
-  }
-  // Away list
-  const awayEl=document.getElementById('daAwayList');
-  if(awayEl){
-    if(!daAway.length){awayEl.innerHTML='<span class="cm-empty">None</span>';}
-    else{awayEl.innerHTML=daAway.map((a,i)=>'<div class="pto-chip"><span class="pto-status Apt">'+esc(a.reason)+'</span>'+esc(a.name)+(a.time?' · <em style="color:#8a8070">'+esc(a.time)+'</em>':'')+'<button class="cm-remove" onclick="removeDAAway('+i+')">✕</button></div>').join('');}
-  }
-  // Precept list
-  const prEl=document.getElementById('daPreceptList');
-  if(prEl){
-    if(!daPrecept.length){prEl.innerHTML='<span class="cm-empty">None</span>';}
-    else{prEl.innerHTML=daPrecept.map((p,i)=>'<div class="precept-chip">'+esc(p.preceptor)+'<span class="precept-arrow">→</span>'+esc(p.preceptee)+'<button class="cm-remove" onclick="removeDAPrecept('+i+')">✕</button></div>').join('');}
-  }
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// ─── Log ──────────────────────────────────────────────────────────────────────
-function addLog(event,type){const now=new Date();log.unshift({time:now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}),event,type});if(log.length>150)log.pop();renderLog();}
-function renderLog(){const list=document.getElementById('logList');if(!log.length){list.innerHTML='<div class="log-empty">No activity yet.</div>';return;}list.innerHTML=log.map(e=>'<div class="log-entry"><span class="log-time">'+e.time+'</span><span class="log-event">'+e.event+'</span></div>').join('');}
-window.copyLog=function(){const text=log.map(e=>'['+e.time+'] '+e.event.replace(/<[^>]+>/g,'')).join('\n');navigator.clipboard.writeText(text).then(()=>showToast('Log copied'));};
-
-// ─── Share lineup ─────────────────────────────────────────────────────────────
-function renderShareLineup(){
-  const section=document.getElementById('shareLineupSection'),preview=document.getElementById('shareLineupPreview');
-  if(!section||!preview)return;
-  const active=getActive();if(active.length===0){section.style.display='none';return;}
-  section.style.display='block';
-  const timerSeconds=getTimerSeconds();
-  const now=new Date(),frontRN=active[0],minsLeft=Math.ceil(timerSeconds/60);
-  const startStr=new Date(rotationStartedAt).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-  const parts=[frontRN.name+' (up front since '+startStr+', '+minsLeft+'m left)'];
-  active.slice(1).forEach(rn=>parts.push(rn.name+(rn.type==='evening'?' (Eve)':'')));
-  preview.textContent=parts.join(', ');
-}
-
-window.copyLineup=function(){const text=document.getElementById('shareLineupPreview').textContent;if(!text){showToast('No lineup to copy');return;}navigator.clipboard.writeText(text).then(()=>showToast('Lineup copied'));};
-
-// ─── Dialog / Toast ──────────────────────────────────────────────────────────
-window.showDialog=function(title,body,onConfirm){document.getElementById('dialogTitle').textContent=title;document.getElementById('dialogBody').innerHTML=body;document.getElementById('dialogConfirm').onclick=()=>{closeDialog();onConfirm();};document.getElementById('overlay').classList.add('active');};
-window.closeDialog=function(){document.getElementById('overlay').classList.remove('active');};
-document.getElementById('overlay').addEventListener('click',e=>{if(e.target===document.getElementById('overlay'))closeDialog();});
-
-let toastTimer=null;
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2500);}
-window.showToast=showToast;
-
-// ─── Utilities ────────────────────────────────────────────────────────────────
-function pad(n){return String(n).padStart(2,'0');}
-function initials(name){return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
-// ─── Boot ─────────────────────────────────────────────────────────────────────
+/* ---------- Final boot ---------- */
 init();
 </script>
 
