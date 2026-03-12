@@ -278,6 +278,17 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 .add-cm-btn { background-color:#f3ede4; border:1px solid #e0d8cc; color:#8a8070; font-size:12px; font-weight:800; padding:8px 14px; border-radius:8px; cursor:pointer; }
 .add-cm-btn:hover { border-color:#8a8070; color:#1a1a1a; }
 
+/* Manual start row */
+.manual-start-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.manual-start-label { font-size:10px; font-weight:700; color:#8a8070; text-transform:uppercase; letter-spacing:0.08em; flex-shrink:0; }
+.manual-start-input { width:80px; background:#f9f6f1; border:1px solid #e0d8cc; border-radius:6px; padding:5px 8px; font-size:12px; font-weight:700; color:#1a1a1a; outline:none; text-align:center; }
+.manual-start-input:focus { border-color:#1a7a6e; background:#fff; }
+.manual-start-btn { background:#1a1a1a; color:#fff; border:none; border-radius:6px; padding:5px 12px; font-size:11px; font-weight:800; cursor:pointer; }
+.manual-start-btn:hover { background:#333; }
+
+/* Pause banner */
+.pause-banner { background:rgba(184,125,26,0.12); border:1px solid rgba(184,125,26,0.3); border-radius:8px; padding:10px 14px; margin-bottom:10px; font-size:12px; font-weight:700; color:#7a5200; line-height:1.4; }
+
 /* Daily Assignment Panel */
 .daily-assign-section { margin-bottom:14px; border:1px solid #e0d8cc; border-radius:12px; overflow:hidden; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
 .daily-assign-toggle { width:100%; background:none; border:none; padding:12px 16px; display:flex; align-items:center; gap:8px; cursor:pointer; font-size:11px; font-weight:800; color:#4a4a4a; text-transform:uppercase; letter-spacing:0.08em; text-align:left; }
@@ -373,7 +384,7 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
   <div class="setup-section-title"><span class="setup-section-num">1</span> Create a free Firebase project</div>
   <div class="setup-instructions">
     <ol>
-      <li>Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a></li>
+      <li>Go to <a href="https://urldefense.com/v3/__https://console.firebase.google.com__;!!IZ3lH8c!wdElc2zdap7z70lV6B8MDZxYrQ1lMVpf-8b2TJht9PtTF-vgN8tGQu7zvENR03xqaCIcMhTCFPegG9U$" target="_blank">console.firebase.google.com</a></li>
       <li>Click <code>Add project</code> → name it (e.g. <code>ccmu1-lineup</code>) → continue through defaults</li>
       <li>In the left sidebar: <code>Build → Realtime Database → Create database</code></li>
       <li>Choose <code>Start in test mode</code> → enable</li>
@@ -395,7 +406,7 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
   </div>
   <div class="setup-field">
     <label>Database URL</label>
-    <input class="setup-input" id="cfg_databaseURL" placeholder="https://your-project-default-rtdb.firebaseio.com">
+    <input class="setup-input" id="cfg_databaseURL" placeholder="https://urldefense.com/v3/__https://your-project-default-rtdb.firebaseio.com__;!!IZ3lH8c!wdElc2zdap7z70lV6B8MDZxYrQ1lMVpf-8b2TJht9PtTF-vgN8tGQu7zvENR03xqaCIcMhTCpQrQQY4$">
   </div>
   <div class="setup-field">
     <label>Project ID</label>
@@ -480,6 +491,14 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
       <div class="timer-display" id="timerDisplay">30:00</div>
       <button class="timer-btn" id="timerToggle">Pause</button>
       <button class="timer-btn" id="timerReset">Reset</button>
+    </div>
+    <div class="manual-start-row">
+      <span class="manual-start-label">Started at</span>
+      <input class="manual-start-input" id="manualStartInput" placeholder="e.g. 8:47a" maxlength="8">
+      <button class="manual-start-btn" onclick="applyManualStart()">Set</button>
+    </div>
+    <div class="pause-banner" id="pauseBanner" style="display:none">
+      <span id="pauseBannerText"></span>
     </div>
     <div class="lunch-slots">
       <span class="section-label">Lunch Plan</span>
@@ -692,9 +711,9 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 
 <!-- Firebase SDK (compat — globally scoped, no module needed) -->
 
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://urldefense.com/v3/__https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js__;!!IZ3lH8c!wdElc2zdap7z70lV6B8MDZxYrQ1lMVpf-8b2TJht9PtTF-vgN8tGQu7zvENR03xqaCIcMhTCGs-YaP4$"></script>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://urldefense.com/v3/__https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js__;!!IZ3lH8c!wdElc2zdap7z70lV6B8MDZxYrQ1lMVpf-8b2TJht9PtTF-vgN8tGQu7zvENR03xqaCIcMhTCE7uvSiY$"></script>
 
 <script>
 
@@ -706,6 +725,9 @@ const CFG_KEY='pods_firebase_cfg';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let mode=null,roster=[],absentRoster=[],rotationStartedAt=Date.now(),timerRunning=true;
+let pausedAt=null;           // epoch ms when timer was paused
+let coverStartedAt=null;     // epoch ms when position-2 started covering
+let coverSecsUsed=0;         // seconds position-2 has covered so far
 function getTimerSeconds(){return Math.max(0,ROTATION_DURATION-Math.floor((Date.now()-rotationStartedAt)/1000));}
 let timerInterval=null,lunchInterval=null,dragSrc=null,absentOpen=false;
 let availBlocks=[],cmRNs=[],availLunchRoster=[],log=[];
@@ -817,6 +839,9 @@ function applyRemoteState(data){
   absentRoster=data.absentRoster||[];
   rotationStartedAt=data.rotationStartedAt||Date.now();
   timerRunning=data.timerRunning!==undefined?data.timerRunning:true;
+  pausedAt=data.pausedAt||null;
+  coverStartedAt=data.coverStartedAt||null;
+  coverSecsUsed=data.coverSecsUsed||0;
   availBlocks=data.availBlocks||[];
   cmRNs=data.cmRNs||[];
   availLunchRoster=data.availLunchRoster||[];
@@ -831,7 +856,7 @@ function applyRemoteState(data){
 
 // ─── Persistence ─────────────────────────────────────────────────────────────
 function saveState(){
-  const state={mode,roster,absentRoster,rotationStartedAt,timerRunning,availBlocks,cmRNs,availLunchRoster,ptoList,preceptingList,dailyInfo,daPTO,daAway,daPrecept,log,_ts:Date.now()};
+  const state={mode,roster,absentRoster,rotationStartedAt,timerRunning,pausedAt,coverStartedAt,coverSecsUsed,availBlocks,cmRNs,availLunchRoster,ptoList,preceptingList,dailyInfo,daPTO,daAway,daPrecept,log,_ts:Date.now()};
   // Always save locally as fallback
   try { sessionStorage.setItem('pods_local',JSON.stringify(state)); } catch{}
   if(syncEnabled&&db&&dbRef){
@@ -880,11 +905,11 @@ async function init(){
 function loadLocal(){
   try{
     const saved=sessionStorage.getItem('pods_local');
-    if(saved){const s=JSON.parse(saved);mode=s.mode||null;roster=s.roster||[];absentRoster=s.absentRoster||[];rotationStartedAt=s.rotationStartedAt||Date.now();timerRunning=s.timerRunning!==undefined?s.timerRunning:true;availBlocks=s.availBlocks||[];cmRNs=s.cmRNs||[];availLunchRoster=s.availLunchRoster||[];ptoList=s.ptoList||[];preceptingList=s.preceptingList||[];dailyInfo=s.dailyInfo||{msl:'',fingerprints:'',apt:'',meetings:'',other:''};daPTO=s.daPTO||[];daAway=s.daAway||[];daPrecept=s.daPrecept||[];log=s.log||[];}
+    if(saved){const s=JSON.parse(saved);mode=s.mode||null;roster=s.roster||[];absentRoster=s.absentRoster||[];rotationStartedAt=s.rotationStartedAt||Date.now();timerRunning=s.timerRunning!==undefined?s.timerRunning:true;pausedAt=s.pausedAt||null;coverStartedAt=s.coverStartedAt||null;coverSecsUsed=s.coverSecsUsed||0;availBlocks=s.availBlocks||[];cmRNs=s.cmRNs||[];availLunchRoster=s.availLunchRoster||[];ptoList=s.ptoList||[];preceptingList=s.preceptingList||[];dailyInfo=s.dailyInfo||{msl:'',fingerprints:'',apt:'',meetings:'',other:''};daPTO=s.daPTO||[];daAway=s.daAway||[];daPrecept=s.daPrecept||[];log=s.log||[];}
   } catch{}
 }
 
-function fullReset(){mode=null;roster=[];absentRoster=[];rotationStartedAt=Date.now();availBlocks=[];cmRNs=[];availLunchRoster=[];ptoList=[];preceptingList=[];dailyInfo={msl:'',fingerprints:'',apt:'',meetings:'',other:''};daPTO=[];daAway=[];daPrecept=[];log=[];}
+function fullReset(){mode=null;roster=[];absentRoster=[];rotationStartedAt=Date.now();pausedAt=null;coverStartedAt=null;coverSecsUsed=0;availBlocks=[];cmRNs=[];availLunchRoster=[];ptoList=[];preceptingList=[];dailyInfo={msl:'',fingerprints:'',apt:'',meetings:'',other:''};daPTO=[];daAway=[];daPrecept=[];log=[];}
 
 // ─── Mode ─────────────────────────────────────────────────────────────────────
 window.setMode=function(m){
@@ -924,13 +949,16 @@ function isBeforePodsStart(){const now=new Date();return now.getHours()*60+now.g
 function startPodsTimer(){
   clearInterval(timerInterval);
   timerInterval=setInterval(()=>{
-    if(!timerRunning||isBeforePodsStart())return;
+    // Always update pause banner (cover time ticks even when paused)
+    if(!timerRunning){renderPauseBanner();return;}
+    if(isBeforePodsStart())return;
     const secs=getTimerSeconds();
     if(secs<=0){
       rotationStartedAt=Date.now(); // reset BEFORE autoRotate to prevent double-fire
       autoRotate();
     }
     renderTimer();
+    renderPauseBanner();
     if(mode==='pods')renderLineupSnapshot();
     saveState();
   },1000);
@@ -957,15 +985,99 @@ function renderTimer(){
 
 document.getElementById('timerToggle').onclick=()=>{
   if(timerRunning){
-    // Pausing: store how many seconds were left as an offset
+    // Pausing: freeze rotationStartedAt so getTimerSeconds stays constant
     const secsLeft=getTimerSeconds();
     rotationStartedAt=Date.now()-(ROTATION_DURATION-secsLeft)*1000;
+    pausedAt=Date.now();
+    // Start tracking position-2 coverage
+    const active=getActive();
+    if(active.length>=2){
+      coverStartedAt=Date.now();
+      addLog('<strong>'+esc(active[0].name)+'</strong> unavailable. <strong>'+esc(active[1].name)+'</strong> covering.','manual');
+    }
+  } else {
+    // Resuming: account for any new cover time
+    if(coverStartedAt){
+      const newCover=Math.floor((Date.now()-coverStartedAt)/1000);
+      coverSecsUsed+=newCover;
+      const active=getActive();
+      if(active.length>=2){
+        const pos2=active[1];
+        const coverMins=Math.ceil(coverSecsUsed/60);
+        addLog('<strong>'+esc(active[0].name)+'</strong> back up front. <strong>'+esc(pos2.name)+'</strong> covered '+coverMins+'m — <span class="ev-credit">'+(Math.max(0,30-coverMins))+'m remaining on their rotation</span>.','manual');
+      }
+      coverStartedAt=null;
+    }
+    pausedAt=null;
+    // Advance rotationStartedAt to keep remaining time accurate
+    // (rotationStartedAt was already frozen on pause, so time paused doesn't count)
   }
   timerRunning=!timerRunning;
   document.getElementById('timerToggle').textContent=timerRunning?'Pause':'Resume';
+  renderPauseBanner();
   saveState();
 };
-document.getElementById('timerReset').onclick=()=>{rotationStartedAt=Date.now();renderTimer();saveState();showToast('Timer reset');};
+document.getElementById('timerReset').onclick=()=>{rotationStartedAt=Date.now();pausedAt=null;coverStartedAt=null;coverSecsUsed=0;timerRunning=true;document.getElementById('timerToggle').textContent='Pause';renderTimer();renderPauseBanner();saveState();showToast('Timer reset');};
+
+// ─── Manual start time ────────────────────────────────────────────────────────
+window.applyManualStart=function(){
+  const val=document.getElementById('manualStartInput').value.trim();
+  if(!val){showToast('Enter a start time');return;}
+  const mins=parsePodsTime(val);
+  if(mins===null){showToast('Format: 8:47a or 847a');return;}
+  const now=new Date();
+  const nowMins=now.getHours()*60+now.getMinutes();
+  const elapsedMins=nowMins-mins;
+  if(elapsedMins<0){showToast('Start time is in the future');return;}
+  const elapsedSecs=elapsedMins*60;
+  if(elapsedSecs>=ROTATION_DURATION){
+    // Already over 30 min — auto-rotate
+    rotationStartedAt=Date.now()-ROTATION_DURATION*1000;
+    renderTimer();saveState();
+    showToast('30+ min elapsed — rotating now');
+    autoRotate();
+  } else {
+    rotationStartedAt=Date.now()-elapsedSecs*1000;
+    timerRunning=true;
+    document.getElementById('timerToggle').textContent='Pause';
+    document.getElementById('manualStartInput').value='';
+    renderTimer();saveState();
+    showToast('Timer set from '+val);
+  }
+};
+
+function parsePodsTime(t){
+  if(!t)return null;
+  t=t.trim().toLowerCase();
+  const isPM=t.includes('p')&&!t.startsWith('12');
+  t=t.replace(/[ap]/g,'').replace(/:/g,'');
+  let h,m;
+  if(t.length<=2){h=parseInt(t);m=0;}
+  else{h=parseInt(t.slice(0,-2));m=parseInt(t.slice(-2));}
+  if(isNaN(h)||isNaN(m))return null;
+  if(isPM&&h!==12)h+=12;
+  return h*60+m;
+}
+
+// ─── Pause banner ─────────────────────────────────────────────────────────────
+function renderPauseBanner(){
+  const banner=document.getElementById('pauseBanner');
+  if(!banner)return;
+  if(timerRunning||!pausedAt){banner.style.display='none';return;}
+  const active=getActive();
+  if(active.length<2){banner.style.display='none';return;}
+  const pos1=active[0],pos2=active[1];
+  const totalCoverSecs=coverStartedAt
+    ? coverSecsUsed+Math.floor((Date.now()-coverStartedAt)/1000)
+    : coverSecsUsed;
+  const coverMins=Math.ceil(totalCoverSecs/60);
+  const remainingMins=Math.max(0,30-coverMins);
+  const secsLeft=getTimerSeconds();
+  const pos1Mins=Math.ceil(secsLeft/60);
+  document.getElementById('pauseBannerText').innerHTML=
+    '⏸ <strong>'+esc(pos1.name)+'</strong> unavailable · <strong>'+esc(pos2.name)+'</strong> covering ('+coverMins+'m so far, '+remainingMins+'m left) · <strong>'+esc(pos1.name)+'</strong> has '+pos1Mins+'m when back';
+  banner.style.display='block';
+}
 
 // ─── Lunch watcher ────────────────────────────────────────────────────────────
 function getLunchRoster(){return mode==='pods'?roster:availLunchRoster;}
@@ -1042,7 +1154,7 @@ function rotate(reason,specificRN){
   const next=getFrontRN();
   const label=reason==='auto'?'<span class="ev-auto">(auto 30 min)</span>':reason==='call-front'?'(took a call)':reason==='call-back'?'<span class="ev-back">(out of turn)</span>':'(manual)';
   addLog('<strong>'+esc(target.name)+'</strong> → back '+label+'. Front: <strong>'+esc(next?next.name:'—')+'</strong>',reason);
-  rotationStartedAt=Date.now();renderTimer();applyCreditIfNeeded();renderPods();saveState();
+  rotationStartedAt=Date.now();coverStartedAt=null;coverSecsUsed=0;pausedAt=null;renderTimer();applyCreditIfNeeded();renderPods();renderPauseBanner();saveState();
   if(next)showToast(next.name+' is now up front');
 }
 
@@ -1070,7 +1182,7 @@ window.openAddEveningHint=function(){document.getElementById('addType').value='e
 window.openPodsResetDialog=function(){showDialog('Reset PODs Lineup','Clear lineup and log to start fresh?',()=>{roster=[];absentRoster=[];rotationStartedAt=Date.now();log=[];addLog('Lineup reset','system');renderTimer();renderPods();renderLog();saveState();showToast('Lineup cleared');});};
 
 // ─── Pods render ──────────────────────────────────────────────────────────────
-function renderPods(){renderLunchGrid(roster,'podsLunchGrid');renderPodsLineup();renderPodsCallBtn();renderPodsAbsent();checkPodsCoverage();renderShareLineup();renderDailyAssign();}
+function renderPods(){renderLunchGrid(roster,'podsLunchGrid');renderPodsLineup();renderPodsCallBtn();renderPodsAbsent();checkPodsCoverage();renderShareLineup();renderDailyAssign();renderPauseBanner();}
 
 function renderPodsLineup(){
   const container=document.getElementById('lineupContainer');
@@ -1124,8 +1236,23 @@ function renderLineupSnapshot(){
   const parts=[];
   roster.forEach((rn,i)=>{
     const isFirst=active[0]===rn&&!rn.atLunch;
+    const isSecond=active[1]===rn&&!rn.atLunch;
     if(rn.atLunch)parts.push(rn.name+' (lunch)');
-    else if(isFirst)parts.push(rn.name+' (up front since '+startStr+', '+minsLeft+'m left)');
+    else if(isFirst){
+      if(!timerRunning&&pausedAt){
+        parts.push(rn.name+' (up front · unavailable · '+minsLeft+'m remaining when back)');
+      } else {
+        parts.push(rn.name+' (up front since '+startStr+', '+minsLeft+'m left)');
+      }
+    }
+    else if(isSecond&&!timerRunning&&pausedAt){
+      const totalCoverSecs=coverStartedAt
+        ? coverSecsUsed+Math.floor((Date.now()-coverStartedAt)/1000)
+        : coverSecsUsed;
+      const coverMins=Math.ceil(totalCoverSecs/60);
+      const remaining=Math.max(0,30-coverMins);
+      parts.push(rn.name+' (covering · '+coverMins+'m used, '+remaining+'m left)');
+    }
     else parts.push(rn.name);
   });
   const htmlParts=parts.map((p,i)=>{const rn=roster[i];const isFirst=active[0]===rn&&!rn.atLunch;return isFirst?'<span class="snap-front">'+esc(p)+'</span>':esc(p);});
