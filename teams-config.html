@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>PODs Lineup Config</title>
+<script src="https://res.cdn.office.net/teams-js/2.0.0/js/MicrosoftTeams.min.js"></script>
+</head>
+<body>
+<script>
+  microsoftTeams.app.initialize().then(() => {
+    microsoftTeams.pages.config.registerOnSaveHandler((saveEvent) => {
+      microsoftTeams.pages.config.setConfig({
+        suggestedDisplayName: 'PODs Lineup',
+        entityId: 'pods-lineup-tab',
+        contentUrl: 'https://tleebraun.github.io/PODs-Lineup-Available-Coverage/',
+        websiteUrl: 'https://tleebraun.github.io/PODs-Lineup-Available-Coverage/'
+      });
+      saveEvent.notifySuccess();
+    });
+    microsoftTeams.pages.config.setValidityState(true);
+  });
+</script>
+<p>Click Save to add the PODs Lineup tab.</p>
+</body>
+</html>
