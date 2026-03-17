@@ -24,7 +24,8 @@ body {
   padding: 24px 16px 60px;
 }
 
-/ BAR
+/* =========================
+   SYNC BAR
 ========================= */
 .sync-bar {
   display: flex;
@@ -288,6 +289,8 @@ header {
 
 /* --- MORE STYLES CONTINUE IN PART 2 --- */
 </style>
+<!-- Microsoft Teams JS SDK (loaded silently; no-op outside Teams) -->
+<script src="https://res.cdn.office.net/teams-js/2.22.0/js/MicrosoftTeams.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
 <!-- (PART 2 continues from the end of PART 1: we are already inside <body>) -->
@@ -602,7 +605,110 @@ header {
   .mode-btns { grid-template-columns: 1fr; }
   .lunch-grid { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* =========================
+   TEAMS DARK THEME
+   Applied when Teams is in dark mode — keeps the app readable.
+========================= */
+body.teams-theme-dark {
+  background-color: #1f1f1f;
+  color: #e8e8e8;
+}
+body.teams-theme-dark .rn-card,
+body.teams-theme-dark .sync-bar,
+body.teams-theme-dark .mode-selector,
+body.teams-theme-dark .timer-section,
+body.teams-theme-dark .lunch-slots,
+body.teams-theme-dark .add-section,
+body.teams-theme-dark .cm-section,
+body.teams-theme-dark .avail-header-bar,
+body.teams-theme-dark .avail-block,
+body.teams-theme-dark .add-block-section,
+body.teams-theme-dark .handoff-section,
+body.teams-theme-dark .log-section,
+body.teams-theme-dark .lineup-snapshot,
+body.teams-theme-dark .daily-assign-section,
+body.teams-theme-dark .setup-card,
+body.teams-theme-dark .dialog {
+  background-color: #2d2d2d;
+  border-color: #404040;
+  color: #e8e8e8;
+}
+body.teams-theme-dark .add-input,
+body.teams-theme-dark .block-name-input,
+body.teams-theme-dark .block-time-input,
+body.teams-theme-dark .add-cm-input,
+body.teams-theme-dark .da-input,
+body.teams-theme-dark .setup-input,
+body.teams-theme-dark .setup-room-input,
+body.teams-theme-dark .daily-info-input,
+body.teams-theme-dark .manual-start-input {
+  background-color: #3a3a3a;
+  border-color: #555;
+  color: #e8e8e8;
+}
+body.teams-theme-dark .rn-name,
+body.teams-theme-dark .avail-block-name,
+body.teams-theme-dark .snapshot-text { color: #e8e8e8; }
+body.teams-theme-dark .brand-label,
+body.teams-theme-dark .rn-meta,
+body.teams-theme-dark .sync-label,
+body.teams-theme-dark .section-label { color: #a0a0a0; }
+body.teams-theme-dark .sec-btn,
+body.teams-theme-dark .timer-btn,
+body.teams-theme-dark .gen-room-btn,
+body.teams-theme-dark .add-cm-btn,
+body.teams-theme-dark .call-count-btn {
+  background-color: #3a3a3a;
+  border-color: #555;
+  color: #e8e8e8;
+}
+body.teams-theme-dark .lunch-slot-col,
+body.teams-theme-dark .da-block { background-color: #3a3a3a; border-color: #555; }
+body.teams-theme-dark .handoff-preview { background-color: #3a3a3a; border-color: #555; color: #d0d0d0; }
+body.teams-theme-dark .log-entry { border-bottom-color: #404040; }
+body.teams-theme-dark .log-event { color: #d0d0d0; }
 </style>
+
+<!-- =========================
+     MICROSOFT TEAMS INTEGRATION
+     No Azure required — pure static tab. Teams context gives us the
+     user's name so nurses don't have to type it.
+========================= -->
+<script>
+/* Teams SDK integration — runs in Teams, silently skipped in browser */
+let teamsContext = null;
+
+function applyTeamsTheme(theme) {
+  document.body.classList.remove('teams-theme-dark', 'teams-theme-contrast');
+  if (theme === 'dark') document.body.classList.add('teams-theme-dark');
+  if (theme === 'contrast') document.body.classList.add('teams-theme-contrast');
+}
+
+function getTeamsDisplayName() {
+  if (!teamsContext) return '';
+  // displayName is the full name from the Teams directory
+  const dn = teamsContext.user && teamsContext.user.displayName;
+  if (dn) return dn;
+  // Fallback: use the part before @ in the login hint / UPN
+  const hint = (teamsContext.user && (teamsContext.user.loginHint || teamsContext.user.userPrincipalName)) || '';
+  const local = hint.split('@')[0];
+  // Convert "jane.doe" → "Jane Doe" or "jdoe" → "Jdoe"
+  return local.replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).trim();
+}
+
+// Show "Pin to Teams" button when viewed in a regular browser so the charge
+// nurse can copy the URL and paste it into Teams chat → + → Website tab.
+// When already inside Teams the button is hidden (already pinned).
+window.copyTeamsUrl = function () {
+  const url = window.location.href.split('?')[0].split('#')[0];
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('URL copied! In Teams: open chat → + → Website → paste URL');
+  }).catch(() => {
+    prompt('Copy this URL, then in Teams: open chat → + tab → Website → paste:', url);
+  });
+};
+</script>
 
 <!-- =========================
      SETUP OVERLAY (CLEANED)
@@ -685,6 +791,7 @@ header {
     <span class="sync-room" id="syncRoom"></span>
     <span class="sync-users" id="syncUsers"></span>
     <button style="background:none;border:1px solid #e0d8cc;color:#8a8070;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;cursor:pointer;margin-left:auto" onclick="openSetup()">⚙ Config</button>
+    <button id="teamsTabBtn" style="display:none;background:none;border:1px solid rgba(26,122,110,0.3);color:#1a7a6e;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;cursor:pointer" onclick="copyTeamsUrl()" title="Copy URL — paste it into Teams + Website tab">📌 Pin to Teams</button>
   </div>
 
   <header>
@@ -1897,8 +2004,45 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-/* ---------- Final boot ---------- */
-init();
+/* ---------- Final boot (Teams-aware) ---------- */
+(async function boot() {
+  // Try to initialise the Teams SDK first. If we're not inside Teams this
+  // rejects silently and we fall through to the normal browser boot.
+  if (typeof microsoftTeams !== 'undefined') {
+    try {
+      await microsoftTeams.app.initialize();
+      teamsContext = await microsoftTeams.app.getContext();
+      document.body.classList.add('teams-mode');
+      applyTeamsTheme(teamsContext.app && teamsContext.app.theme ? teamsContext.app.theme : 'default');
+      microsoftTeams.app.registerOnThemeChangeHandler(applyTeamsTheme);
+    } catch (_) {
+      // Not running in Teams — normal browser mode, teamsContext stays null
+    }
+  }
+
+  await init();
+
+  if (teamsContext) {
+    // Running inside Teams (Website tab) — hide the "Pin" button (already pinned)
+    const btn = document.getElementById('teamsTabBtn');
+    if (btn) btn.style.display = 'none';
+
+    // Pre-fill the name input from Teams identity
+    const nameInput = document.getElementById('addInput');
+    if (nameInput && !nameInput.value) {
+      const name = getTeamsDisplayName();
+      if (name) nameInput.value = name;
+    }
+    try {
+      microsoftTeams.app.notifyAppLoaded();
+      microsoftTeams.app.notifySuccess();
+    } catch (_) {}
+  } else {
+    // Running in a regular browser — show the "Pin to Teams" helper button
+    const btn = document.getElementById('teamsTabBtn');
+    if (btn) btn.style.display = 'inline-block';
+  }
+})();
 </script>
 
 <script>
