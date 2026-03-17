@@ -1166,6 +1166,11 @@ function applyRemoteState(data) {
   renderMode();
   const tgl = document.getElementById('timerToggle');
   if (tgl) tgl.textContent = timerRunning ? 'Pause' : 'Resume';
+
+  // Start timers — init() runs before the first Firebase snapshot fires,
+  // so mode is null at boot. applyRemoteState is where we first know the mode.
+  if (mode === 'pods') { startPodsTimer(); startLunchWatcher(); }
+  if (mode === 'avail') { startAvailCountdown(); startLunchWatcher(); }
 }
 
 /* Save state (local + remote) */
