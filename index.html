@@ -588,6 +588,15 @@ header {
 .toast { position: fixed; bottom: 24px; right: 24px; background-color: #1a1a1a; border-radius: 10px; padding: 11px 16px; font-size: 12px; color: #ffffff; font-weight: 700; z-index: 200; transform: translateY(20px); opacity: 0; transition: all 0.25s; pointer-events: none; max-width: 280px; }
 .toast.show { transform: translateY(0); opacity: 1; }
 
+/* Daily info inputs */
+.daily-info-input { flex: 1; background-color: #f9f6f1; border: 1px solid #e0d8cc; border-radius: 6px; padding: 6px 10px; color: #1a1a1a; font-size: 12px; font-weight: 600; outline: none; }
+.daily-info-input:focus { border-color: #1a7a6e; background-color: #fff; }
+.daily-info-input::placeholder { color: #c4bdb0; }
+
+/* Setup offline button */
+.setup-offline-btn { width: 100%; padding: 11px; background: none; border: 1px solid #e0d8cc; border-radius: 10px; color: #8a8070; font-size: 13px; font-weight: 700; cursor: pointer; }
+.setup-offline-btn:hover { border-color: #8a8070; color: #1a1a1a; }
+
 /* Responsive niceties */
 @media (max-width: 420px) {
   .mode-btns { grid-template-columns: 1fr; }
@@ -1645,6 +1654,10 @@ function renderPods() {
   renderPodsLineup();
   renderPodsCallBtn();
   renderPodsAbsent();
+  renderDAPTO();
+  renderDAAway();
+  renderDAPrecept();
+  renderCoverageWarn();
 }
 
 function renderPodsLineup() {
@@ -1654,6 +1667,8 @@ function renderPodsLineup() {
       '<div class="empty-state"><div class="empty-state-title">No one in the lineup yet</div>' +
       '<div class="empty-state-sub">Type your name below and tap Join.</div></div>';
     document.getElementById('rnCount').textContent = '0 RNs';
+    renderLineupSnapshot();
+    renderPodsLunchGrid();
     return;
   }
 
@@ -1662,22 +1677,66 @@ function renderPodsLineup() {
   container.innerHTML = roster.map((rn, i) => {
     if (!rn.atLunch) pos++;
     const disp = rn.atLunch ? '—' : pos;
-    return `
-      <div class="rn-card ${rn === active[0] ? 'front' : ''} ${rn.atLunch ? 'at-lunch' : ''}">
-        <span class="position-num">${disp}</span>
-        <div class="rn-avatar">${initials(rn.name)}</div>
-        <div class="rn-info">
-          <div class="rn-name">${esc(rn.name)}</div>
-          <div class="rn-meta">${rn.atLunch ? 'At lunch' : 'Position ' + disp}</div>
-        </div>
-        <div class="rn-actions">
-          ${!rn.atLunch ? `<button class="icon-btn absent" onclick="markAbsent(${i})">✕</button>` : ''}
-        </div>
-      </div>`;
+    const isFront = rn === active[0];
+    const isEvening = rn.type === 'evening';
+    const creditMins = rn.frontCredit ? Math.round(rn.frontCredit / 60) : 0;
+
+    let cardCls = 'rn-card';
+    if (isFront) cardCls += ' front';
+    else if (rn.atLunch) cardCls += ' at-lunch';
+    else if (isEvening) cardCls += ' evening';
+    else if (creditMins >= 5) cardCls += ' credited';
+
+    let badges = '';
+    if (isFront) badges += '<span class="badge badge-front">Front</span>';
+    if (rn.atLunch) {
+      const secsLeft = rn.lunchSecondsLeft || 0;
+      const mLeft = Math.ceil(secsLeft / 60);
+      badges += '<span class="badge badge-lunch">Lunch</span>';
+      badges += '<span class="lunch-countdown">' + mLeft + 'm left</span>';
+    }
+    if (isEvening) badges += '<span class="badge badge-evening">Evening</span>';
+    if (creditMins > 0 && !rn.atLunch) badges += '<span class="credit-display">' + creditMins + 'm credit</span>';
+
+    let lunchSelectHtml = '';
+    if (!rn.atLunch) {
+      const opts = LUNCH_PLAN_SLOTS.map((slot, si) =>
+        `<option value="${slot}" ${rn.lunchSlot === slot ? 'selected' : ''}>${slot}</option>`
+      ).join('');
+      lunchSelectHtml = `<select class="lunch-plan-select ${rn.lunchSlot ? 'set' : ''}" onchange="setLunchSlot(${i}, this.value)">
+        <option value="">Lunch?</option>${opts}
+      </select>`;
+    }
+
+    let actionBtns = '';
+    if (rn.atLunch) {
+      actionBtns += `<button class="icon-btn lunch-return" onclick="returnFromLunchByIdx(${i})" title="Back from lunch">↩</button>`;
+    } else {
+      actionBtns += `<button class="icon-btn go-lunch" onclick="sendToLunch(${i})" title="Send to lunch">🍽</button>`;
+      if (!isFront) actionBtns += `<button class="icon-btn to-front" onclick="moveToFront(${i})" title="Move to front">↑</button>`;
+      if (i < roster.length - 1) actionBtns += `<button class="icon-btn to-back" onclick="moveToBack(${i})" title="Move to back">↓</button>`;
+      actionBtns += `<button class="icon-btn absent" onclick="markAbsent(${i})" title="Remove">✕</button>`;
+    }
+
+    return `<div class="${cardCls}" draggable="true" data-idx="${i}"
+        ondragstart="dragStart(event,${i})" ondragover="dragOver(event,${i})" ondrop="dragDrop(event,${i})" ondragleave="dragLeave(event)">
+      <span class="drag-handle">⋮⋮</span>
+      <span class="position-num">${disp}</span>
+      <div class="rn-avatar">${initials(rn.name)}</div>
+      <div class="rn-info">
+        <div class="rn-name">${esc(rn.name)}</div>
+        <div class="rn-meta">${rn.atLunch ? 'At lunch' : 'Position ' + disp + (isEvening ? ' · Eve' : '')}</div>
+      </div>
+      <div class="rn-badges">${badges}${lunchSelectHtml}</div>
+      <div class="rn-actions">${actionBtns}</div>
+    </div>`;
   }).join('');
 
   document.getElementById('rnCount').textContent =
     active.length + ' active / ' + roster.length + ' total';
+
+  renderLineupSnapshot();
+  renderPodsLunchGrid();
 }
 
 function renderPodsCallBtn() {
@@ -1691,10 +1750,14 @@ function parseTimeToMins(t) {
   if (!t) return null;
   t = t.toLowerCase().replace(':', '');
   const isPM = t.includes('p') && !t.startsWith('12');
+  const isAM = t.includes('a');
   t = t.replace(/[ap]/g, '');
-  let h = parseInt(t), m = 0;
-  if (isNaN(h)) return null;
+  let h, m;
+  if (t.length <= 2) { h = parseInt(t); m = 0; }
+  else { h = parseInt(t.slice(0, -2)); m = parseInt(t.slice(-2)); }
+  if (isNaN(h) || isNaN(m)) return null;
   if (isPM && h !== 12) h += 12;
+  if (isAM && h === 12) h = 0;
   return h * 60 + m;
 }
 
@@ -1795,6 +1858,436 @@ function showToast(msg) {
 
 /* ---------- Final boot ---------- */
 init();
+</script>
+
+<script>
+/* ============================================================================
+   MISSING FUNCTIONS — PODs absent, lunch, DA, Available Coverage, Avail blocks
+============================================================================ */
+
+/* ---------- PODs Absent ---------- */
+function renderPodsAbsent() {
+  const section = document.getElementById('absentSection');
+  const list = document.getElementById('absentList');
+  const label = document.getElementById('absentToggleLabel');
+  if (!absentRoster.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  label.textContent = 'Removed (' + absentRoster.length + ')';
+  list.innerHTML = absentRoster.map((rn, i) =>
+    `<div class="absent-chip">${esc(rn.name)}<button class="absent-restore" onclick="restoreFromAbsent(${i})">Restore</button></div>`
+  ).join('');
+}
+
+window.toggleAbsentView = function () {
+  absentOpen = !absentOpen;
+  document.getElementById('absentList').style.display = absentOpen ? 'flex' : 'none';
+  document.getElementById('absentToggleIcon').textContent = absentOpen ? '▾' : '▸';
+};
+
+/* ---------- Lineup snapshot ---------- */
+function renderLineupSnapshot() {
+  const snap = document.getElementById('lineupSnapshot');
+  const txt = document.getElementById('snapshotText');
+  const active = getActive();
+  if (!active.length) { snap.style.display = 'none'; return; }
+  snap.style.display = 'flex';
+  txt.innerHTML = '<span class="snap-front">' + esc(active[0].name) + '</span>' +
+    (active.length > 1 ? ' · ' + active.slice(1).map(r => esc(r.name)).join(' · ') : '');
+}
+
+window.copySnapshot = function () {
+  const active = getActive();
+  if (!active.length) return;
+  const text = active.map((r, i) => (i === 0 ? '▶ ' : '  ') + r.name).join('\n');
+  navigator.clipboard.writeText(text).then(() => showToast('Lineup copied'));
+};
+
+/* ---------- Lunch plan grid (PODs) ---------- */
+function renderPodsLunchGrid() {
+  const grid = document.getElementById('podsLunchGrid');
+  if (!grid) return;
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  grid.innerHTML = LUNCH_PLAN_SLOTS.map((slot, si) => {
+    const slotMins = parseTimeToMins(LUNCH_SLOT_TIMES[si]);
+    const isNow = slotMins !== null && nowMins >= slotMins && nowMins < slotMins + 30;
+    const assigned = roster.filter(r => r.lunchSlot === slot);
+    const namesHtml = assigned.length
+      ? assigned.map(r => `<div class="lunch-name-row">${r.atLunch ? '<span class="lunch-actual-dot"></span>' : ''}${esc(r.name)}</div>`).join('')
+      : '<span class="lunch-slot-empty">—</span>';
+    return `<div class="lunch-slot-col ${isNow ? 'active-now' : ''}">
+      <span class="lunch-slot-time">${slot}</span>
+      <div class="lunch-slot-names">${namesHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- Lunch slot assignment ---------- */
+window.setLunchSlot = function (idx, slot) {
+  if (roster[idx]) {
+    roster[idx].lunchSlot = slot || null;
+    renderPodsLunchGrid();
+    saveState();
+  }
+};
+
+/* ---------- Send to / return from lunch (PODs) ---------- */
+window.sendToLunch = function (idx) {
+  const rn = roster[idx];
+  if (!rn || rn.atLunch) return;
+  rn.atLunch = true;
+  rn.lunchSecondsLeft = LUNCH_DURATION;
+  rn.lunchActualTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  addLog('<strong>' + esc(rn.name) + '</strong> went to lunch', 'lunch');
+  renderPods();
+  saveState();
+};
+
+window.returnFromLunchByIdx = function (idx) {
+  const rn = roster[idx];
+  if (rn) returnFromLunch(rn, false);
+};
+
+function returnFromLunch(rn, auto) {
+  rn.atLunch = false;
+  rn.lunchSecondsLeft = 0;
+  addLog('<strong>' + esc(rn.name) + '</strong> returned from lunch' + (auto ? ' (auto)' : ''), 'lunch');
+  if (mode === 'pods') renderPods();
+  else renderAvail();
+  saveState();
+}
+
+/* ---------- Move to front / back ---------- */
+window.moveToFront = function (idx) {
+  const rn = roster.splice(idx, 1)[0];
+  roster.unshift(rn);
+  renderPods();
+  saveState();
+};
+
+window.moveToBack = function (idx) {
+  const rn = roster.splice(idx, 1)[0];
+  roster.push(rn);
+  renderPods();
+  saveState();
+};
+
+/* ---------- Drag & drop ---------- */
+window.dragStart = function (e, idx) { dragSrc = idx; e.dataTransfer.effectAllowed = 'move'; };
+window.dragOver = function (e, idx) {
+  e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.rn-card').forEach(c => c.classList.remove('drag-over'));
+  const card = e.currentTarget; if (card) card.classList.add('drag-over');
+};
+window.dragLeave = function (e) { if (e.currentTarget) e.currentTarget.classList.remove('drag-over'); };
+window.dragDrop = function (e, idx) {
+  e.preventDefault();
+  document.querySelectorAll('.rn-card').forEach(c => c.classList.remove('drag-over'));
+  if (dragSrc === null || dragSrc === idx) return;
+  const moved = roster.splice(dragSrc, 1)[0];
+  roster.splice(idx, 0, moved);
+  dragSrc = null;
+  renderPods();
+  saveState();
+};
+
+/* ---------- PODs reset dialog ---------- */
+window.openPodsResetDialog = function () {
+  showDialog('Reset Lineup', 'Clear all RNs from the lineup? This cannot be undone.', () => {
+    roster = []; absentRoster = [];
+    rotationStartedAt = Date.now(); coverStartedAt = null;
+    coverSecsUsed = 0; pausedAt = null; timerRunning = true;
+    document.getElementById('timerToggle').textContent = 'Pause';
+    renderPods(); renderTimer(); renderPauseBanner();
+    saveState(); showToast('Lineup reset');
+  });
+};
+
+/* ---------- Add evening RN hint ---------- */
+window.openAddEveningHint = function () {
+  showDialog('Evening RNs', 'Select "Evening" in the dropdown next to the Join field, then type the RN\'s name and tap Join. Evening RNs are added to the end of the lineup.', () => {});
+};
+
+/* ---------- Daily Assignment panel ---------- */
+window.toggleDailyAssign = function () {
+  const body = document.getElementById('dailyAssignBody');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  document.getElementById('dailyAssignIcon').textContent = isOpen ? '▸' : '▾';
+};
+
+function renderDAPTO() {
+  const el = document.getElementById('daPTOList');
+  if (!el) return;
+  if (!daPTO.length) { el.innerHTML = '<span class="cm-empty">None</span>'; return; }
+  el.innerHTML = daPTO.map((p, i) =>
+    `<div class="pto-chip">${esc(p.name)}<span class="pto-status ${p.status}">${p.status}</span>${p.note ? '<span style="color:#8a8070;font-size:11px">' + esc(p.note) + '</span>' : ''}<button class="cm-remove" onclick="removeDAPTO(${i})">✕</button></div>`
+  ).join('');
+}
+function renderDAAway() {
+  const el = document.getElementById('daAwayList');
+  if (!el) return;
+  if (!daAway.length) { el.innerHTML = '<span class="cm-empty">None</span>'; return; }
+  el.innerHTML = daAway.map((a, i) =>
+    `<div class="pto-chip">${esc(a.name)}<span class="pto-status Apt">${esc(a.reason)}</span>${a.time ? '<span style="color:#8a8070;font-size:11px">' + esc(a.time) + '</span>' : ''}<button class="cm-remove" onclick="removeDAAway(${i})">✕</button></div>`
+  ).join('');
+}
+function renderDAPrecept() {
+  const el = document.getElementById('daPreceptList');
+  if (!el) return;
+  if (!daPrecept.length) { el.innerHTML = '<span class="cm-empty">None</span>'; return; }
+  el.innerHTML = daPrecept.map((p, i) =>
+    `<div class="precept-chip">${esc(p.preceptor)}<span class="precept-arrow">→</span>${esc(p.preceptee)}<button class="cm-remove" onclick="removeDAPrecept(${i})">✕</button></div>`
+  ).join('');
+}
+
+window.addDAPTO = function () {
+  const name = document.getElementById('daPTOName').value.trim();
+  if (!name) return;
+  daPTO.push({ name, status: document.getElementById('daPTOStatus').value, note: document.getElementById('daPTONote').value.trim() });
+  document.getElementById('daPTOName').value = ''; document.getElementById('daPTONote').value = '';
+  renderDAPTO(); saveState();
+};
+window.addDAAway = function () {
+  const name = document.getElementById('daAwayName').value.trim();
+  if (!name) return;
+  daAway.push({ name, reason: document.getElementById('daAwayReason').value, time: document.getElementById('daAwayTime').value.trim() });
+  document.getElementById('daAwayName').value = ''; document.getElementById('daAwayTime').value = '';
+  renderDAAway(); saveState();
+};
+window.addDAPrecept = function () {
+  const preceptor = document.getElementById('daPreceptor').value.trim();
+  const preceptee = document.getElementById('daPreceptee').value.trim();
+  if (!preceptor || !preceptee) return;
+  daPrecept.push({ preceptor, preceptee });
+  document.getElementById('daPreceptor').value = ''; document.getElementById('daPreceptee').value = '';
+  renderDAPrecept(); saveState();
+};
+window.removeDAPTO = function (i) { daPTO.splice(i,1); renderDAPTO(); saveState(); };
+window.removeDAAway = function (i) { daAway.splice(i,1); renderDAAway(); saveState(); };
+window.removeDAPrecept = function (i) { daPrecept.splice(i,1); renderDAPrecept(); saveState(); };
+
+/* ============================================================================
+   AVAILABLE COVERAGE
+============================================================================ */
+
+function renderAvail() {
+  renderAvailHeader();
+  renderAvailBlocks();
+  renderCMList();
+  renderPTOList();
+  renderPreceptList();
+  renderDailyInfo();
+  renderHandoff();
+}
+
+/* ---------- Coverage blocks ---------- */
+function renderAvailBlocks() {
+  const container = document.getElementById('availBlockList');
+  if (!container) return;
+  const cur = getCurrentBlock();
+  if (!availBlocks.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state-title">No coverage blocks</div><div class="empty-state-sub">Add time blocks below.</div></div>';
+    return;
+  }
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  container.innerHTML = availBlocks.map((b, i) => {
+    const startMins = parseTimeToMins(b.start);
+    const endMins = parseTimeToMins(b.end);
+    const isPast = endMins !== null && nowMins >= endMins;
+    const isActive = b === cur;
+    const isAllWatch = b.name.toLowerCase().includes('all watch');
+    const isUnavail = b.unavailable;
+
+    let cls = 'avail-block';
+    if (isActive) cls += isAllWatch ? ' all-watch-block active-block' : ' active-block';
+    else if (isPast) cls += ' past-block';
+    else if (isUnavail) cls += ' unavail-block';
+
+    let badgeHtml = '';
+    if (isActive) badgeHtml += '<span class="badge ' + (isAllWatch ? 'badge-allwatch' : 'badge-active') + '">' + (isAllWatch ? 'All Watch' : 'Active') + '</span>';
+    else if (isPast) badgeHtml += '<span class="badge badge-past">Past</span>';
+    if (isUnavail) badgeHtml += '<span class="badge badge-unavail">Unavail</span>';
+    if (isAllWatch && !isActive) badgeHtml += '<span class="badge badge-allwatch">All Watch</span>';
+
+    return `<div class="${cls}">
+      <div class="avail-block-time">${esc(b.start)}–${esc(b.end)}</div>
+      <div class="avail-block-avatar">${initials(b.name)}</div>
+      <div class="avail-block-info">
+        <div class="avail-block-name">${esc(b.name)}</div>
+        <div class="avail-block-meta">${esc(b.start)} – ${esc(b.end)}</div>
+      </div>
+      <div class="avail-block-badges">${badgeHtml}</div>
+      <div class="avail-block-actions">
+        <button class="call-count-btn" onclick="incrementBlockCall(${i})" title="Log a call">
+          ${b.callCount || 0}<span class="call-count-label"> calls</span>
+        </button>
+        <button class="icon-btn ${isUnavail ? 'to-front' : 'to-back'}" onclick="toggleBlockUnavail(${i})" title="${isUnavail ? 'Mark available' : 'Mark unavailable'}">${isUnavail ? '✓' : '✕'}</button>
+        <button class="icon-btn absent" onclick="removeBlock(${i})" title="Remove">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.addBlock = function () {
+  const start = document.getElementById('blockStart').value.trim();
+  const end = document.getElementById('blockEnd').value.trim();
+  const name = document.getElementById('blockName').value.trim();
+  if (!start || !end || !name) { showToast('Fill in start, end, and name'); return; }
+  const s = parseTimeToMins(start), e = parseTimeToMins(end);
+  if (s === null || e === null) { showToast('Use format like 9a or 10:30a'); return; }
+  if (e <= s) { showToast('End must be after start'); return; }
+  availBlocks.push({ start, end, name, callCount: 0, unavailable: false });
+  availBlocks.sort((a, b) => (parseTimeToMins(a.start) || 0) - (parseTimeToMins(b.start) || 0));
+  document.getElementById('blockStart').value = '';
+  document.getElementById('blockEnd').value = '';
+  document.getElementById('blockName').value = '';
+  addLog('Coverage block added: <span class="ev-avail">' + esc(name) + '</span> ' + esc(start) + '–' + esc(end));
+  renderAvail(); saveState();
+};
+
+window.removeBlock = function (i) {
+  const b = availBlocks.splice(i, 1)[0];
+  addLog('Block removed: <span class="ev-avail">' + esc(b.name) + '</span>');
+  renderAvail(); saveState();
+};
+window.incrementBlockCall = function (i) {
+  availBlocks[i].callCount = (availBlocks[i].callCount || 0) + 1;
+  addLog('Call logged for <span class="ev-avail">' + esc(availBlocks[i].name) + '</span>');
+  renderAvailBlocks(); renderHandoff(); saveState();
+};
+window.toggleBlockUnavail = function (i) {
+  availBlocks[i].unavailable = !availBlocks[i].unavailable;
+  addLog('<span class="ev-avail">' + esc(availBlocks[i].name) + '</span> marked ' + (availBlocks[i].unavailable ? 'unavailable' : 'available'));
+  renderAvailBlocks(); saveState();
+};
+
+window.openAvailResetDialog = function () {
+  showDialog('Reset Available Coverage', 'Clear all coverage blocks and roster data?', () => {
+    availBlocks = []; cmRNs = []; availLunchRoster = [];
+    ptoList = []; preceptingList = [];
+    dailyInfo = { msl:'', fingerprints:'', apt:'', meetings:'', other:'' };
+    renderAvail(); saveState(); showToast('Coverage reset');
+  });
+};
+
+/* ---------- CM list ---------- */
+function renderCMList() {
+  const el = document.getElementById('cmList');
+  if (!el) return;
+  if (!cmRNs.length) { el.innerHTML = '<span class="cm-empty">None assigned</span>'; return; }
+  el.innerHTML = cmRNs.map((name, i) =>
+    `<div class="cm-chip">${esc(name)}<button class="cm-remove" onclick="removeCM(${i})">✕</button></div>`
+  ).join('');
+}
+window.addCM = function () {
+  const name = document.getElementById('cmInput').value.trim();
+  if (!name) return;
+  if (cmRNs.find(r => r.toLowerCase() === name.toLowerCase())) { showToast('Already added'); return; }
+  cmRNs.push(name);
+  document.getElementById('cmInput').value = '';
+  renderCMList(); renderHandoff(); saveState();
+};
+window.removeCM = function (i) { cmRNs.splice(i,1); renderCMList(); renderHandoff(); saveState(); };
+
+/* ---------- PTO list ---------- */
+function renderPTOList() {
+  const el = document.getElementById('ptoList');
+  if (!el) return;
+  if (!ptoList.length) { el.innerHTML = '<span class="cm-empty">None</span>'; return; }
+  el.innerHTML = ptoList.map((p, i) =>
+    `<div class="cm-chip">${esc(p.name)}<span class="pto-status ${p.status}">${p.status}</span>${p.note ? '<span style="color:#8a8070;font-size:11px">' + esc(p.note) + '</span>' : ''}<button class="cm-remove" onclick="removePTO(${i})">✕</button></div>`
+  ).join('');
+}
+window.addPTO = function () {
+  const name = document.getElementById('ptoName').value.trim();
+  if (!name) return;
+  ptoList.push({ name, status: document.getElementById('ptoStatus').value, note: document.getElementById('ptoNote').value.trim() });
+  document.getElementById('ptoName').value = ''; document.getElementById('ptoNote').value = '';
+  renderPTOList(); renderHandoff(); saveState();
+};
+window.removePTO = function (i) { ptoList.splice(i,1); renderPTOList(); renderHandoff(); saveState(); };
+
+/* ---------- Precepting list ---------- */
+function renderPreceptList() {
+  const el = document.getElementById('preceptList');
+  if (!el) return;
+  if (!preceptingList.length) { el.innerHTML = '<span class="cm-empty">None</span>'; return; }
+  el.innerHTML = preceptingList.map((p, i) =>
+    `<div class="precept-chip">${esc(p.preceptor)}<span class="precept-arrow">→</span>${esc(p.preceptee)}<button class="cm-remove" onclick="removePrecepting(${i})">✕</button></div>`
+  ).join('');
+}
+window.addPrecepting = function () {
+  const preceptor = document.getElementById('preceptor').value.trim();
+  const preceptee = document.getElementById('preceptee').value.trim();
+  if (!preceptor || !preceptee) return;
+  preceptingList.push({ preceptor, preceptee });
+  document.getElementById('preceptor').value = ''; document.getElementById('preceptee').value = '';
+  renderPreceptList(); renderHandoff(); saveState();
+};
+window.removePrecepting = function (i) { preceptingList.splice(i,1); renderPreceptList(); renderHandoff(); saveState(); };
+
+/* ---------- Daily info ---------- */
+function renderDailyInfo() {
+  const f = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+  f('di_msl', dailyInfo.msl); f('di_fingerprints', dailyInfo.fingerprints);
+  f('di_apt', dailyInfo.apt); f('di_meetings', dailyInfo.meetings); f('di_other', dailyInfo.other);
+}
+window.saveDailyInfo = function () {
+  dailyInfo.msl = document.getElementById('di_msl').value;
+  dailyInfo.fingerprints = document.getElementById('di_fingerprints').value;
+  dailyInfo.apt = document.getElementById('di_apt').value;
+  dailyInfo.meetings = document.getElementById('di_meetings').value;
+  dailyInfo.other = document.getElementById('di_other').value;
+  renderHandoff(); saveState();
+};
+
+/* ---------- Handoff message ---------- */
+function renderHandoff() {
+  const el = document.getElementById('handoffPreview');
+  if (!el) return;
+  const now = new Date();
+  const lines = ['Available Coverage – ' + now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }), ''];
+  if (dailyInfo.msl) lines.push('MSL: ' + dailyInfo.msl);
+  if (dailyInfo.fingerprints) lines.push('Fingerprints: ' + dailyInfo.fingerprints);
+  if (dailyInfo.apt) lines.push('Apt Time: ' + dailyInfo.apt);
+  if (dailyInfo.meetings) lines.push('Meetings: ' + dailyInfo.meetings);
+  if (dailyInfo.other) lines.push('Other: ' + dailyInfo.other);
+  if (ptoList.length) { lines.push(''); lines.push('PTO/Flex/Out: ' + ptoList.map(p => p.name + ' (' + p.status + (p.note ? ' – ' + p.note : '') + ')').join(', ')); }
+  if (preceptingList.length) lines.push('Precepting: ' + preceptingList.map(p => p.preceptor + ' → ' + p.preceptee).join(', '));
+  if (cmRNs.length) lines.push('CM Today: ' + cmRNs.join(', '));
+  if (availBlocks.length) {
+    lines.push(''); lines.push('Coverage Schedule:');
+    availBlocks.forEach(b => {
+      const calls = b.callCount ? ' (' + b.callCount + ' calls)' : '';
+      const flag = b.unavailable ? ' [UNAVAIL]' : '';
+      lines.push('  ' + b.start + '–' + b.end + ': ' + b.name + calls + flag);
+    });
+  }
+  el.textContent = lines.join('\n');
+}
+window.copyHandoff = function () {
+  const text = document.getElementById('handoffPreview').textContent;
+  navigator.clipboard.writeText(text).then(() => showToast('Handoff copied'));
+};
+
+/* ---------- Coverage warn (PODs) ---------- */
+function renderCoverageWarn() {
+  const warn = document.getElementById('podsCoverageWarn');
+  const txt = document.getElementById('podsCoverageWarnText');
+  if (!warn) return;
+  const active = getActive();
+  if (active.length === 0) {
+    txt.textContent = 'No RNs in lineup';
+    warn.classList.add('visible');
+  } else if (active.length === 1) {
+    txt.textContent = 'Only 1 active RN — no one to cover if ' + active[0].name + ' is unavailable.';
+    warn.classList.add('visible');
+  } else {
+    warn.classList.remove('visible');
+  }
+}
 </script>
 
 </body>
