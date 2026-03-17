@@ -695,6 +695,18 @@ function getTeamsDisplayName() {
   // Convert "jane.doe" → "Jane Doe" or "jdoe" → "Jdoe"
   return local.replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).trim();
 }
+
+// Show "Pin to Teams" button when viewed in a regular browser so the charge
+// nurse can copy the URL and paste it into Teams chat → + → Website tab.
+// When already inside Teams the button is hidden (already pinned).
+window.copyTeamsUrl = function () {
+  const url = window.location.href.split('?')[0].split('#')[0];
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('URL copied! In Teams: open chat → + → Website → paste URL');
+  }).catch(() => {
+    prompt('Copy this URL, then in Teams: open chat → + tab → Website → paste:', url);
+  });
+};
 </script>
 
 <!-- =========================
@@ -778,6 +790,7 @@ function getTeamsDisplayName() {
     <span class="sync-room" id="syncRoom"></span>
     <span class="sync-users" id="syncUsers"></span>
     <button style="background:none;border:1px solid #e0d8cc;color:#8a8070;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;cursor:pointer;margin-left:auto" onclick="openSetup()">⚙ Config</button>
+    <button id="teamsTabBtn" style="display:none;background:none;border:1px solid rgba(26,122,110,0.3);color:#1a7a6e;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;cursor:pointer" onclick="copyTeamsUrl()" title="Copy URL — paste it into Teams + Website tab">📌 Pin to Teams</button>
   </div>
 
   <header>
@@ -2008,8 +2021,12 @@ function showToast(msg) {
 
   await init();
 
-  // After the app is ready, pre-fill the name input from Teams identity
   if (teamsContext) {
+    // Running inside Teams (Website tab) — hide the "Pin" button (already pinned)
+    const btn = document.getElementById('teamsTabBtn');
+    if (btn) btn.style.display = 'none';
+
+    // Pre-fill the name input from Teams identity
     const nameInput = document.getElementById('addInput');
     if (nameInput && !nameInput.value) {
       const name = getTeamsDisplayName();
@@ -2019,6 +2036,10 @@ function showToast(msg) {
       microsoftTeams.app.notifyAppLoaded();
       microsoftTeams.app.notifySuccess();
     } catch (_) {}
+  } else {
+    // Running in a regular browser — show the "Pin to Teams" helper button
+    const btn = document.getElementById('teamsTabBtn');
+    if (btn) btn.style.display = 'inline-block';
   }
 })();
 </script>
