@@ -1415,10 +1415,18 @@ function renderTimer() {
 document.getElementById('timerToggle').onclick = () => {
   if (timerRunning) {
     const secsLeft = getTimerSeconds();
+    const active = getActive();
+
+    // ≤5m rule: front person has little time left — just rotate them to back
+    if (active.length >= 2 && secsLeft <= CREDIT_MINIMUM) {
+      addLog('<strong>' + esc(active[0].name) + '</strong> had ≤5m left — rotated to back', 'auto');
+      rotate('credit-waived');
+      return;
+    }
+
     rotationStartedAt = Date.now() - (ROTATION_DURATION - secsLeft) * 1000;
     pausedAt = Date.now();
 
-    const active = getActive();
     if (active.length >= 2) {
       coverStartedAt = Date.now();
       addLog(
@@ -1572,18 +1580,31 @@ function rotate(reason, specificRN) {
   if (active.length < 2) { showToast('Need 2+ active RNs'); return; }
 
   const target = specificRN || active[0];
+  target.frontCredit = 0; // clear any credit — they've been rotated out
   const idx = roster.indexOf(target);
   roster.splice(idx, 1);
   roster.push(target);
 
   const next = getFrontRN();
-  addLog(
-    '<strong>' + esc(target.name) + '</strong> → back (' + reason + '). Front: <strong>' +
-    esc(next ? next.name : '—') + '</strong>',
-    reason
-  );
 
-  rotationStartedAt = Date.now();
+  // If the new front person has a credit (went to lunch mid-rotation), restore their timer
+  if (next && next.frontCredit > 0) {
+    rotationStartedAt = Date.now() - (ROTATION_DURATION - next.frontCredit) * 1000;
+    addLog(
+      '<strong>' + esc(target.name) + '</strong> → back (' + reason + '). Front: <strong>' +
+      esc(next.name) + '</strong> (' + Math.ceil(next.frontCredit / 60) + 'm credit)',
+      reason
+    );
+    next.frontCredit = 0;
+  } else {
+    rotationStartedAt = Date.now();
+    addLog(
+      '<strong>' + esc(target.name) + '</strong> → back (' + reason + '). Front: <strong>' +
+      esc(next ? next.name : '—') + '</strong>',
+      reason
+    );
+  }
+
   coverStartedAt = null;
   coverSecsUsed = 0;
   pausedAt = null;
@@ -1638,11 +1659,20 @@ window.addRN = function () {
 };
 
 window.markAbsent = function (idx) {
-  const rn = roster.splice(idx, 1)[0];
+  const rn = roster[idx];
+  const isFront = rn === getFrontRN();
+  // ≤5m rule: if removing the front person with little time left, reset timer for next person
+  if (isFront && getTimerSeconds() <= CREDIT_MINIMUM) {
+    rotationStartedAt = Date.now();
+    addLog('<strong>' + esc(rn.name) + '</strong> had ≤5m left — credit waived', 'auto');
+  }
+  roster.splice(idx, 1);
   rn.atLunch = false;
+  rn.frontCredit = 0;
   absentRoster.push(rn);
   addLog('<strong>' + esc(rn.name) + '</strong> removed', 'absent');
   renderPods();
+  renderTimer();
   saveState();
 };
 
@@ -1896,15 +1926,36 @@ function renderLineupSnapshot() {
   const active = getActive();
   if (!active.length) { snap.style.display = 'none'; return; }
   snap.style.display = 'flex';
-  txt.innerHTML = '<span class="snap-front">' + esc(active[0].name) + '</span>' +
-    (active.length > 1 ? ' · ' + active.slice(1).map(r => esc(r.name)).join(' · ') : '');
+
+  const secsLeft = getTimerSeconds();
+  const mLeft = Math.ceil(secsLeft / 60);
+
+  const frontHtml = '<span class="snap-front">' + esc(active[0].name) + ' (' + mLeft + 'm left)</span>';
+  const restHtml = active.slice(1).map(r => {
+    let s = esc(r.name);
+    if (r.frontCredit > 0) s += ' <span style="color:#b87d1a;font-size:10px;font-weight:700">(' + Math.ceil(r.frontCredit / 60) + 'm credit)</span>';
+    return s;
+  });
+
+  txt.innerHTML = frontHtml + (restHtml.length ? ' · ' + restHtml.join(' · ') : '');
 }
 
 window.copySnapshot = function () {
   const active = getActive();
   if (!active.length) return;
-  const text = active.map((r, i) => (i === 0 ? '▶ ' : '  ') + r.name).join('\n');
-  navigator.clipboard.writeText(text).then(() => showToast('Lineup copied'));
+  const secsLeft = getTimerSeconds();
+  const mLeft = Math.ceil(secsLeft / 60);
+  const lines = active.map((r, i) => {
+    let line = (i === 0 ? '▶ ' : '  ') + r.name;
+    if (i === 0) line += ' (' + mLeft + 'm left)';
+    else if (r.frontCredit > 0) line += ' (' + Math.ceil(r.frontCredit / 60) + 'm credit)';
+    return line;
+  });
+  // Also note anyone at lunch who has credit
+  roster.filter(r => r.atLunch && r.frontCredit > 0).forEach(r => {
+    lines.push('  ' + r.name + ' [lunch · ' + Math.ceil(r.frontCredit / 60) + 'm credit on return]');
+  });
+  navigator.clipboard.writeText(lines.join('\n')).then(() => showToast('Lineup copied'));
 };
 
 /* ---------- Lunch plan grid (PODs) ---------- */
@@ -1940,11 +1991,27 @@ window.setLunchSlot = function (idx, slot) {
 window.sendToLunch = function (idx) {
   const rn = roster[idx];
   if (!rn || rn.atLunch) return;
+
+  const isFront = rn === getActive()[0];
+  if (isFront) {
+    const secsLeft = getTimerSeconds();
+    if (secsLeft <= CREDIT_MINIMUM) {
+      // ≤5m left — waive remaining time, reset timer for next person
+      rotationStartedAt = Date.now();
+      addLog('<strong>' + esc(rn.name) + '</strong> had ≤5m left — credit waived, timer reset', 'auto');
+    } else {
+      // Save remaining time as credit to serve when they return
+      rn.frontCredit = secsLeft;
+      addLog('<strong>' + esc(rn.name) + '</strong> went to lunch with ' + Math.ceil(secsLeft / 60) + 'm credit', 'lunch');
+    }
+  }
+
   rn.atLunch = true;
   rn.lunchSecondsLeft = LUNCH_DURATION;
   rn.lunchActualTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  addLog('<strong>' + esc(rn.name) + '</strong> went to lunch', 'lunch');
+  if (!isFront) addLog('<strong>' + esc(rn.name) + '</strong> went to lunch', 'lunch');
   renderPods();
+  renderTimer();
   saveState();
 };
 
