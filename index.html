@@ -1344,6 +1344,10 @@ function esc(s) {
 
 /* ---------- Timer helpers ---------- */
 function getTimerSeconds() {
+  // When paused, return the time that was frozen at the moment of pause
+  if (!timerRunning && pausedAt !== null) {
+    return Math.max(0, ROTATION_DURATION - Math.floor((pausedAt - rotationStartedAt) / 1000));
+  }
   return Math.max(0, ROTATION_DURATION - Math.floor((Date.now() - rotationStartedAt) / 1000));
 }
 
@@ -1360,6 +1364,9 @@ function isBeforePodsStart() {
 function startPodsTimer() {
   clearInterval(timerInterval);
   timerInterval = setInterval(() => {
+    // Always keep the snapshot time current
+    renderLineupSnapshot();
+
     if (!timerRunning) { renderPauseBanner(); return; }
     if (isBeforePodsStart()) return;
 
@@ -1370,7 +1377,6 @@ function startPodsTimer() {
     }
     renderTimer();
     renderPauseBanner();
-    renderLineupSnapshot();
     saveState();
   }, 1000);
 
